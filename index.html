@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart CG - ระบบเยี่ยมบ้านผู้สูงอายุ</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--p:#0f766e;--p2:#0d9488;--pl:#ccfbf1;--bg:#f5f3f0;--b:#cbd5e1;--t:#1e293b;--m:#64748b;--br:#8b6447}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--t);font-size:15px;-webkit-text-size-adjust:100%;display:flex;flex-direction:column;min-height:100vh}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f766e,#0891b2);padding:16px;width:100%;position:fixed;inset:0;z-index:200}
+.lbox{background:#fff;padding:28px 24px;border-radius:16px;width:100%;max-width:380px;box-shadow:0 10px 40px #0003}
+.lbox h1{margin:0 0 4px;color:var(--p);font-size:24px}
+.lbox label{display:block;margin:12px 0;font-size:14px;color:var(--m);font-weight:600}
+.lbox input,.lbox select{width:100%;margin-top:4px}
+#app{display:none;flex:1;flex-direction:column}
+.side{position:fixed;left:0;top:0;bottom:0;width:245px;background:#0f3d3a;color:#fff;padding:16px 0;overflow-y:auto;z-index:40;transition:transform .25s}
+.brand{padding:0 18px 16px;font-weight:700;font-size:19px;border-bottom:1px solid #ffffff22;margin-bottom:8px}
+.brand small{display:block;font-weight:300;font-size:11px;opacity:.8;margin-top:2px}
+.side a{display:block;padding:12px 18px;color:#d1fae5;cursor:pointer;border-left:4px solid transparent;font-size:14px}
+.side a:hover,.side a.act{background:#ffffff1a;color:#fff;border-left-color:#5eead4}
+.main{margin-left:245px;padding:20px;flex:1}
+.footer{margin-left:245px;text-align:center;padding:16px;font-size:13px;color:var(--m);border-top:1px solid #e2e8f0;background:#fff;margin-top:auto}
+
+.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px #0000000a;border:1px solid #ece7e1}
+h2{margin:0 0 14px;color:var(--p);font-size:19px}
+h3{margin:0 0 10px;font-size:16px;color:#334155}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+input,select,textarea{font-family:inherit;font-size:15px;padding:9px 12px;border:1px solid var(--b);border-radius:8px;background:#fff;width:100%;color:var(--t)}
+textarea{min-height:70px}
+button,.btnlike{font-family:inherit;font-size:14px;padding:9px 16px;border:0;border-radius:8px;background:var(--p);color:#fff;cursor:pointer;display:inline-block;font-weight:600;text-align:center}
+button:hover{background:var(--p2)}button.sec{background:#e2e8f0;color:var(--t)}button.sec:hover{background:#cbd5e1}button.del{background:#dc2626}button.sm{padding:5px 10px;font-size:13px;width:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #e2e8f0;padding:7px 9px;text-align:left;vertical-align:middle}th{background:#f8fafc;font-weight:600;color:#334155}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.b-grn{background:#dcfce7;color:#166534}.b-amb{background:#fef3c7;color:#92400e}.b-red{background:#fee2e2;color:#991b1b}.b-blu{background:#dbeafe;color:#1e40af}.b-gry{background:#f1f5f9;color:#475569}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.form label{display:flex;flex-direction:column;font-size:13px;color:var(--m);gap:4px;font-weight:600}
+.full{grid-column:1/-1}
+.gps{display:flex;gap:6px}.gps input{flex:1;min-width:0}.gps button{white-space:nowrap;width:auto}
+.q{border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:10px;background:#fafafa}
+.q .opts{display:grid;gap:6px;margin-top:8px}.q label{cursor:pointer;font-weight:normal}
+.chk-group{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:6px}
+.chk-item{display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;font-weight:normal;color:var(--t);background:#f8fafc;padding:8px 10px;border-radius:8px;border:1px solid #e2e8f0}
+.chk-item input{margin-top:2px;width:18px;height:18px;accent-color:var(--p);flex-shrink:0}
+
+.time-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.tchip{border:1px solid var(--b);background:#fff;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;color:var(--t);transition:.1s}
+.tchip.active{background:#fdf4ed;border-color:#b08968;color:#8b6447}
+
+.score{position:sticky;top:0;background:var(--pl);padding:10px 14px;border-radius:10px;font-size:16px;margin-bottom:12px;z-index:2;font-weight:600;color:#042f2e;border:1px solid #5eead4}
+.sch td,.sch th{padding:4px;text-align:center;font-size:12px;white-space:nowrap}
+.sch td.nm{text-align:left}.sch td.d{cursor:pointer;min-width:24px}
+.sch .off{background:#f1f5f9;color:#94a3b8}.sch td.on{background:#fde68a;font-weight:700}.sch td.done{background:#86efac;font-weight:700}.sch td.duty{background:#93c5fd;font-weight:700}
+.sch tr.cgh td{background:#ccfbf1;font-weight:700;text-align:left;color:#0f766e}
+#modal{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:16px;z-index:300}
+#modal .box{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:780px;max-height:90vh;overflow-y:auto}
+.mut{color:var(--m)}.err{color:#dc2626;font-size:13px}
+.menu-btn{display:none;align-items:center;gap:6px;background:var(--p);color:#fff;border:0;padding:8px 14px;border-radius:8px;font-weight:600;margin-bottom:14px}
+.report-header{text-align:center;margin-bottom:20px;display:none}
+.thumb{width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.thumbs img{width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer}
+
+/* ===== DASHBOARD ===== */
+.dhero{position:relative;overflow:hidden;background:linear-gradient(115deg,#4a3324 0%,#7d5a40 45%,#e2bd8f 100%);color:#fff;border-radius:22px;padding:22px 26px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 10px 25px -10px #7d5a40}
+.dhero:after{content:"";position:absolute;right:-60px;bottom:-90px;width:260px;height:260px;border-radius:50%;background:#ffffff14}
+.dhero .ic{width:64px;height:64px;border-radius:16px;background:#ffffff26;display:grid;place-items:center;font-size:30px;flex-shrink:0;border:1px solid #ffffff33}
+.dhero h1{margin:0;font-size:26px;font-weight:700}
+.dhero p{margin:2px 0 0;opacity:.9;font-size:14px}
+.dhero select{margin-left:auto;width:auto;min-width:210px;border-radius:12px;padding:11px 14px;border:0;position:relative;z-index:1}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:18px 0}
+.kpi{background:#fff;border-radius:18px;padding:18px;display:flex;gap:14px;align-items:center;box-shadow:0 2px 10px #0000000d;border-top:5px solid var(--c)}
+.kpi .ki{width:58px;height:58px;border-radius:16px;background:var(--g);display:grid;place-items:center;font-size:26px;flex-shrink:0;box-shadow:0 8px 16px -6px var(--c)}
+.kpi b{font-size:30px;display:block;line-height:1.1;color:#0f172a}
+.kpi span{display:block;color:#475569;font-weight:600;font-size:14px}
+.kpi small{color:#64748b;font-size:12px}
+.cgcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px;margin-bottom:18px}
+.cgc{background:#fff;border-radius:18px;padding:16px 18px;border-top:5px solid #b08968;box-shadow:0 2px 10px #0000000d}
+.cgc .hd{display:flex;gap:12px;align-items:center}
+.cgc .hd b{font-size:16px;display:block}
+.cgc .hd small{color:#64748b;font-size:13px}
+.av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:20px;flex-shrink:0}
+.bar{height:9px;background:#f1f5f9;border-radius:9px;margin:14px 0;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#8b6447,#d4a373)}
+.cst{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;gap:4px}
+.cst b{font-size:21px;display:block;color:#0f172a}.cst b.red{color:#e11d48}
+.cst small{color:#64748b;font-size:12px}
+.acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.obtn{background:#fff!important;border:1px solid #e2e8f0;color:#334155!important;border-radius:10px;padding:7px 12px;font-size:13px;width:auto!important}
+.obtn:hover{background:#faf6f1!important;border-color:#d6c3ae}
+.heat{background:#fff;border-radius:18px;border-top:5px solid #b08968;box-shadow:0 2px 10px #0000000d;overflow:hidden;margin-bottom:18px}
+.heat .hh{display:flex;gap:12px;align-items:center;padding:16px 18px}
+.heat .hh .ic2{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#d4a373,#8b6447);display:grid;place-items:center;font-size:20px}
+.heat table{font-size:14px}.heat th{background:#faf6f1;border:0;border-bottom:1px solid #ece7e1;text-align:center;white-space:nowrap;padding:10px 8px}
+.heat td{border:0;border-bottom:1px solid #f1ede8;text-align:center;padding:9px 8px;white-space:nowrap}
+.heat td:first-child,.heat th:first-child{text-align:left;padding-left:18px;position:sticky;left:0;background:#fff;z-index:1}
+.heat th:first-child{background:#faf6f1}
+.hc{display:inline-block;min-width:40px;padding:5px 8px;border-radius:8px;font-weight:600;color:#3f2a1c}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:#faf6f1;border:1px solid #ece7e1;border-radius:12px;padding:8px 14px;font-size:13px}
+.chip b{font-size:18px;margin-left:4px;color:#5c4030}
+
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){
+ .side{transform:translateX(-100%);box-shadow:5px 0 15px #0003}.side.open{transform:none}
+ .main{margin-left:0;padding:12px}.footer{margin-left:0}
+ .menu-btn{display:flex}
+ .toolbar{flex-direction:column;align-items:stretch}.toolbar input,.toolbar select,.toolbar button{width:100%}
+ .dhero{padding:18px;border-radius:18px}.dhero h1{font-size:21px}.dhero .ic{width:52px;height:52px;font-size:24px}
+ .dhero select{margin-left:0;width:100%}
+ .kpis{gap:10px}.kpi{padding:12px;gap:10px;flex-direction:column;align-items:flex-start}
+ .kpi .ki{width:46px;height:46px;font-size:22px}.kpi b{font-size:24px}
+ .cgcards{grid-template-columns:1fr}
+}
+@media print{
+ .side,.toolbar,.noprint,.menu-btn,.footer{display:none!important}
+ .main{margin:0;padding:0}.card{box-shadow:none;border:0;padding:0}
+ body{background:#fff;font-size:12px}.report-header{display:block}
+ @page{size:landscape;margin:8mm}
+}
+</style>
+</head>
+<body>
+<div id="login"><form class="lbox" onsubmit="doLogin(event)">
+<h1>Smart CG</h1><p class="mut">ระบบดูแลผู้สูงอายุและผู้มีภาวะพึ่งพิง<br>อบต.ชมเจริญ อ.ปากชม จ.เลย</p>
+<label>ประเภทผู้ใช้งาน
+<select id="lrole" onchange="toggleCgSel(this.value)">
+<option value="admin">ผู้ดูแลระบบ (Admin)</option>
+<option value="cg">อาสาสมัครดูแลผู้สูงอายุ (CG)</option>
+</select></label>
+<div id="cgSelBox" style="display:none"><label>เลือกชื่อ CG ของท่าน<select id="lcgId"></select></label></div>
+<label>ชื่อผู้ใช้<input id="lu" autocomplete="username" required placeholder="กรอกชื่อผู้ใช้"></label>
+<label>รหัสผ่าน<input id="lp" type="password" autocomplete="current-password" required placeholder="กรอกรหัสผ่าน"></label>
+<div id="lerr" class="err"></div><button style="width:100%;margin-top:14px">เข้าสู่ระบบ</button><div style="text-align:center;margin-top:12px"><a href="#" onclick="ghModal();return false" style="font-size:13px;color:var(--p)">☁️ เชื่อมต่อ GitHub (สำหรับเครื่องใหม่)</a></div></form></div>
+
+<div id="app">
+  <nav class="side" id="sideNav">
+    <div class="brand">Smart CG<small id="userRoleBadge">ศูนย์พัฒนาคุณภาพชีวิตฯ อบต.ชมเจริญ</small></div>
+    <div id="nav"></div>
+  </nav>
+  <main class="main" id="main"></main>
+  <footer class="footer">พัฒนาโดย นายเอกพล อาจโยธา ผอ.รพ.สต.บ้านห้วยอาลัย<br><small id="syncSt"></small></footer>
+</div>
+<div id="modal" onclick="if(event.target===this)closeM()"></div>
+
+<script>
+const KEY='smartcg_db_v10';
+const TM=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TMS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const DOW=['อา','จ','อ','พ','พฤ','ศ','ส'];
+const GROUPS={0:'ไม่เข้าเกณฑ์/ติดสังคม',1:'กลุ่ม 1',2:'กลุ่ม 2',3:'กลุ่ม 3',4:'กลุ่ม 4'};
+const TAI_CLASSES=['B5','B4','B3','C4','C3','C2','I3','I2','I1'];
+const TAI2GROUP={B5:0,B4:1,B3:1,C4:2,C3:2,C2:2,I3:3,I2:3,I1:4};
+const TAI_DESC={B5:'ช่วยเหลือตัวเองได้ดี (ติดสังคม)',B4:'เคลื่อนไหวได้ ไม่สับสน กิน/ขับถ่ายได้',B3:'เคลื่อนไหวได้ ไม่สับสน มีปัญหาการกินหรือขับถ่าย',C4:'มีภาวะสับสน แต่กิน/ขับถ่ายได้',C3:'มีภาวะสับสน มีปัญหาการกินหรือขับถ่าย',C2:'มีภาวะสับสน มีปัญหาการกินมาก',I3:'เคลื่อนไหวเองไม่ได้ กินเองได้',I2:'เคลื่อนไหวเองไม่ได้ ต้องช่วยเรื่องการกิน',I1:'เคลื่อนไหวเองไม่ได้ กินเองไม่ได้/เจ็บป่วยรุนแรง'};
+const ADL_ITEMS=[
+['1. Feeding (รับประทานอาหาร)',['ไม่สามารถตักอาหารเองได้ ต้องป้อน','ตักเองได้แต่ต้องมีคนช่วยเตรียม/ตัดชิ้นเล็ก','ตักและช่วยเหลือตัวเองได้ปกติ']],
+['2. Grooming (ล้างหน้า หวีผม แปรงฟัน)',['ต้องการความช่วยเหลือ','ทำเองได้ทั้งหมด']],
+['3. Transfer (ลุกนั่งจากที่นอน/เตียง)',['นั่งไม่ได้เลย/ใช้คนยก 2 คน','ต้องการความช่วยเหลือมาก (คนแข็งแรง 1-2 คน)','ต้องการความช่วยเหลือบ้าง / พยุงเล็กน้อย','ทำได้เองปกติ']],
+['4. Toilet use (ใช้ห้องน้ำ)',['ช่วยตัวเองไม่ได้','ทำเองได้บ้าง (ทำความสะอาดหลังเสร็จธุระ)','ช่วยตัวเองได้ดี (ขึ้นลง ถอดใส่เสื้อผ้าเรียบร้อย)']],
+['5. Mobility (การเคลื่อนที่ภายในบ้าน)',['เคลื่อนที่ไม่ได้','ใช้รถเข็นเคลื่อนที่เองได้','เดินโดยมีคนช่วยพยุง / ดูแลความปลอดภัย','เดินได้เอง']],
+['6. Dressing (การสวมใส่เสื้อผ้า)',['ต้องมีคนสวมให้ แทบไม่ได้','ช่วยตัวเองได้ประมาณ 50%','ช่วยตัวเองได้ดี (ติดกระดุม รูดซิปได้)']],
+['7. Stairs (การขึ้นลงบันได 1 ชั้น)',['ไม่ได้','ต้องการคนช่วย','ขึ้นลงได้เอง']],
+['8. Bathing (การอาบน้ำ)',['ต้องมีคนช่วยอาบ','อาบน้ำเองได้']],
+['9. Bowels (การกลั้นอุจจาระ 1 สัปดาห์)',['กลั้นไม่ได้ / สวนอุจจาระเสมอ','กลั้นไม่ได้บางครั้ง (น้อยกว่า 1 ครั้ง/สัปดาห์)','กลั้นได้ปกติ']],
+['10. Bladder (การกลั้นปัสสาวะ 1 สัปดาห์)',['กลั้นไม่ได้ / ใส่สายสวน','กลั้นไม่ได้บางครั้ง (น้อยกว่าวันละ 1 ครั้ง)','กลั้นได้ปกติ']]];
+const TAI_ITEMS=[
+['m','1. การเคลื่อนไหว (Mobility)',['พลิกตัวเองบนเตียงไม่ได้','พลิกตัวได้ แต่ลุกนั่งไม่ได้','ลุกนั่งได้ แต่ยืน/เดินไม่ได้','ยืน/เดินโดยมีคนช่วย/ใช้รถเข็นเอง','เดินได้เองในบ้าน','เดินได้ทั้งในและนอกบ้าน']],
+['c','2. ความจำ/การตัดสินใจ (Confusion)',['ไม่รู้สึกตัว/ไม่ตอบสนอง','สับสนมาก ดูแลตลอดเวลา','สับสนบ่อย ต้องดูแลใกล้ชิด','สับสนบางครั้ง ต้องคอยเตือน','หลงลืมเล็กน้อย','ปกติ']],
+['e','3. การกิน (Eating)',['กินทางปากไม่ได้/ให้อาหารทางหลอดเลือด','ให้อาหารทางสายยาง','ต้องป้อนทั้งหมด','ต้องช่วยป้อนบางส่วน','กินเองได้ แต่ต้องเตรียม/ช่วยเล็กน้อย','กินเองได้ปกติ']],
+['t','4. การขับถ่าย (Toilet)',['กลั้นไม่ได้ ใส่สายสวน/ผ้าอ้อมตลอด','กลั้นไม่ได้บ่อย ใช้ผ้าอ้อม','ต้องช่วยทั้งหมด','ต้องช่วยบางส่วน','ทำเองแต่ต้องมีคนดูแล','ทำเองปกติ']]];
+const HELPS=['วัดความดันโลหิต/ชีพจร','ทำความสะอาดร่างกาย/อาบน้ำ','สระผม/ตัดเล็บ','ป้อน/จัดเตรียมอาหาร','ดูแลการรับประทานยา','ทำกายภาพบำบัด/ออกกำลังกาย','พลิกตัว/ป้องกันแผลกดทับ','ทำแผล','ดูแลสายยาง/สายสวน','ทำความสะอาดที่อยู่อาศัย','พูดคุย ให้กำลังใจ','ให้คำแนะนำญาติ'];
+const SATS=['พอใจมาก','พอใจ','ไม่พอใจ'];
+const AVC=['linear-gradient(135deg,#c084fc,#9333ea)','linear-gradient(135deg,#f472b6,#be185d)','linear-gradient(135deg,#fb7185,#e11d48)','linear-gradient(135deg,#60a5fa,#2563eb)','linear-gradient(135deg,#34d399,#059669)','linear-gradient(135deg,#fbbf24,#d97706)'];
+const SEED=[];
+
+let db,_c=0;
+const now0=new Date();
+let state={y:now0.getFullYear(),m:now0.getMonth()+1,cg:'',q:'',gf:'',vm:'',vcg:'',dm:'',pre:null};
+let currentUser={role:'admin',cgId:null,name:'ผู้ดูแลระบบ'};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const uid=()=>Date.now().toString(36)+(_c++).toString(36)+Math.random().toString(36).slice(2,6);
+const range=n=>Array.from({length:n},(_,i)=>i+1);
+const mkey=(y,m)=>`${y}-${pad(m)}`;
+const todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const thDate=iso=>{if(!iso)return '-';const [y,m,d]=iso.split('-');return `${+d} ${TMS[+m-1]} ${+y+543}`};
+const thMonth=key=>{const [y,m]=key.split('-').map(Number);return `${TM[m-1]} ${y+543}`};
+const P=id=>db.patients.find(p=>p.id===id);
+const activeP=()=>db.patients.filter(p=>p.status!=='inactive');
+const cgName=id=>(db.cgs.find(c=>c.id===id)||{}).name||'-';
+const visitsNeeded=g=>+g>=3?4:(+g>=1?2:0);
+const guessSex=n=>/^(นาย|ด\.ช\.|เด็กชาย)/.test(n)?'ชาย':/^(นาง|น\.ส\.|ด\.ญ\.|เด็กหญิง)/.test(n)?'หญิง':'';
+const fmtH=h=>Math.round(h*10)/10;
+const hasAdl=p=>p.adl!==''&&p.adl!=null&&!isNaN(p.adl);
+function age(b){if(!b)return '';const [y,m,d]=b.split('-').map(Number);const t=new Date();let a=t.getFullYear()-y;if(t.getMonth()+1<m||(t.getMonth()+1===m&&t.getDate()<d))a--;return a}
+function adlCat(s){if(s===''||s==null||isNaN(s))return ['-','b-gry'];s=+s;return s>=12?['ติดสังคม','b-grn']:s>=5?['ติดบ้าน','b-amb']:['ติดเตียง','b-red']}
+function validCID(id){if(!/^\d{13}$/.test(id))return false;let s=0;for(let i=0;i<12;i++)s+=+id[i]*(13-i);return (11-s%11)%10===+id[12]}
+function taiClass(m,c,e,t){if(m<=2)return e>=4?'I3':e===3?'I2':'I1';if(c<=3){if(e>=4&&t>=4)return 'C4';if(e>=3)return 'C3';return 'C2'}if(m===5&&c===5&&e===5&&t===5)return 'B5';if(e>=4&&t>=4)return 'B4';return 'B3'}
+const dl=(name,text,type)=>{const b=new Blob([text],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
+const toCSV=rows=>'\ufeff'+rows.map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+function initial(n){const s=String(n||'').replace(/^(นางสาว|นาง|นาย|น\.ส\.|ด\.ช\.|ด\.ญ\.)\s*/,'');const m=s.match(/[ก-ฮA-Za-z]/);return m?m[0]:'?'}
+function vHrs(v){if(v.mins)return (+v.mins)/60;if(v.tStart&&v.tEnd){const [a,b]=v.tStart.split(':').map(Number),[c,d]=v.tEnd.split(':').map(Number);const h=(c*60+d-a*60-b)/60;if(h>0)return h}return +db.settings.visitHrs||2}
+
+function seed(){const d={cgs:[],patients:[],adl:[],tai:[],visits:[],schedules:{},settings:{orgName:'ศูนย์พัฒนาคุณภาพชีวิตผู้สูงอายุฯ อบต.ชมเจริญ',visitHrs:2,dutyHrs:8,weekend:false,holidays:''}};
+ SEED.forEach(([cg,ps])=>{const c={id:uid(),name:cg,cid:'',phone:'',area:'',note:''};d.cgs.push(c);const moos=new Set();
+  ps.split(';').forEach(s=>{const [n,m,g,a]=s.split(',');moos.add(m);d.patients.push({id:uid(),name:n.trim(),cid:'',birth:'',sex:guessSex(n.trim()),moo:m,address:'ต.ชมเจริญ อ.ปากชม จ.เลย',lat:'',lng:'',phone:'',disease:'',adl:+a,tai:'',group:+g,cgId:c.id,relative:'',relPhone:'',status:'active'})});
+  c.area='หมู่ '+[...moos].join(', ')});return d}
+function save(){stamp();try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){alert('หน่วยความจำเต็ม กรุณาลบบันทึกเก่าบางส่วน');return false}ghVer++;if(ghReady()){localStorage.setItem(GHD,'1');syncSoon()}return true}
+function load(){try{db=JSON.parse(localStorage.getItem(KEY))}catch(e){db=null}if(!db||!db.patients||!db.cgs||!db.cgs.length){db=seed();save()}db.settings=Object.assign({orgName:'ศูนย์พัฒนาคุณภาพชีวิตผู้สูงอายุฯ อบต.ชมเจริญ',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});['adl','tai','visits'].forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{}}
+
+/* ---------- GITHUB SYNC ---------- */
+var curPage='dash',ghVer=0,ghBusy=false,ghAgain=false,ghTimer=null,ghStatus='';
+const GHK='smartcg_gh',GHS='smartcg_gh_state',GHD='smartcg_gh_dirty';
+const COLS=['cgs','patients','adl','tai','visits'];
+const hm=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
+const b64=s=>{const u=new TextEncoder().encode(s);let b='';for(let i=0;i<u.length;i+=0x8000)b+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(b)};
+const unb64=b=>{const s=atob(b.replace(/\s/g,'')),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new TextDecoder().decode(u)};
+function ghCfg(){try{return JSON.parse(localStorage.getItem(GHK))}catch(e){return null}}
+function ghReady(){const c=ghCfg();return !!(c&&c.token&&localStorage.getItem(GHS))}
+function ghErr(e){return e instanceof TypeError?'เชื่อมต่อ GitHub ไม่ได้ (ออฟไลน์?) ข้อมูลยังเก็บในเครื่อง จะส่งให้อัตโนมัติเมื่อออนไลน์':e.message}
+function setStatus(t,col){ghStatus=t;const e=$('#syncSt');if(e){e.textContent=t;e.style.color=col||''}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+function normDb(){db.settings=Object.assign({orgName:'ศูนย์พัฒนาคุณภาพชีวิตผู้สูงอายุฯ อบต.ชมเจริญ',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});COLS.forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{}}
+const payload=d=>JSON.stringify(d,(k,v)=>k==='_h'?undefined:v);
+
+/* ติดตามว่ารายการไหนถูกแก้/ลบ เพื่อใช้รวมข้อมูลจากหลายเครื่อง */
+function hsh(o){const s=JSON.stringify(o,(k,v)=>k==='_u'?undefined:v);let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return h+':'+s.length}
+function recMap(d,c){if(c==='schedules')return d.schedules||{};if(c==='settings')return d.settings?{settings:d.settings}:{};const m={};(d[c]||[]).forEach(r=>m[r.id]=r);return m}
+function stamp(){const t=Date.now(),first=!db._h;db._h=db._h||{};db.del=db.del||{};
+ [...COLS,'schedules','settings'].forEach(c=>{const m=recMap(db,c),H=db._h[c]=db._h[c]||{};
+  for(const id in m){const r=m[id];if(!r||typeof r!=='object')continue;const h=hsh(r);if(H[id]!==h){if(!first){r._u=t;delete db.del[c+':'+id]}H[id]=h}}
+  for(const id in H)if(!(id in m)){if(!first&&c!=='settings')db.del[c+':'+id]=t;delete H[id]}})}
+function merge(L,R){const eL=L.epoch||0,eR=R.epoch||0;if(eR>eL)return R;if(eL>eR)return L;
+ const del=Object.assign({},R.del||{});for(const k in (L.del||{}))del[k]=Math.max(del[k]||0,L.del[k]);
+ const out=Object.assign({},R,L,{del}),pick=(a,b)=>!a?b:!b?a:((b._u||0)>(a._u||0)?b:a),alive=(c,id,x)=>(del[c+':'+id]||0)<=(x._u||0);
+ COLS.forEach(c=>{const a=recMap(L,c),b=recMap(R,c),r=[];new Set([...Object.keys(a),...Object.keys(b)]).forEach(id=>{const x=pick(a[id],b[id]);if(alive(c,id,x))r.push(x)});out[c]=r});
+ {const a=L.schedules||{},b=R.schedules||{},o={};new Set([...Object.keys(a),...Object.keys(b)]).forEach(id=>{const x=pick(a[id],b[id]);if(alive('schedules',id,x))o[id]=x});out.schedules=o}
+ out.settings=pick(L.settings,R.settings);return out}
+
+/* GitHub API */
+function ghApi(q,o){o=o||{};const c=ghCfg(),h={'Authorization':'Bearer '+c.token,'Accept':o.raw?'application/vnd.github.raw+json':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};if(o.inm)h['If-None-Match']=o.inm;if(o.body)h['Content-Type']='application/json';
+ return fetch(`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${c.path.split('/').map(encodeURIComponent).join('/')}${q||''}`,{method:o.method||'GET',headers:h,body:o.body,cache:'no-store'})}
+async function ghPull(inm){const c=ghCfg(),q='?ref='+encodeURIComponent(c.branch);const r=await ghApi(q,{inm});
+ if(r.status===304)return{same:true};
+ if(r.status===404)return{sha:null,data:null,etag:null};
+ if(r.status===401)throw new Error('Token ไม่ถูกต้องหรือหมดอายุ');
+ if(r.status===403)throw new Error('Token ไม่มีสิทธิ์ หรือเรียก GitHub ถี่เกินโควตา');
+ if(!r.ok)throw new Error('GitHub ตอบกลับผิดพลาด ('+r.status+')');
+ const j=await r.json(),etag=r.headers.get('ETag');let txt;
+ if(j.content&&j.encoding==='base64')txt=unb64(j.content);
+ else{const r2=await ghApi(q,{raw:1});if(!r2.ok)throw new Error('อ่านไฟล์ไม่สำเร็จ ('+r2.status+')');txt=await r2.text()}
+ return{sha:j.sha,etag,data:txt.trim()?JSON.parse(txt):null}}
+async function ghPut(sha){const c=ghCfg(),body={message:'smartcg sync '+new Date().toISOString(),content:b64(payload(db)),branch:c.branch};if(sha)body.sha=sha;
+ const r=await ghApi('',{method:'PUT',body:JSON.stringify(body)});
+ if(r.status===409||r.status===422)return null;
+ if(r.status===404)throw new Error('ไม่พบ Repository/Branch หรือ Token ไม่มีสิทธิ์เขียน (ต้องตั้งสิทธิ์ Contents: Read and write)');
+ if(r.status===401)throw new Error('Token ไม่ถูกต้องหรือหมดอายุ');
+ if(r.status===403)throw new Error('Token ไม่มีสิทธิ์เขียน หรือเกินโควตา');
+ if(!r.ok)throw new Error('ส่งข้อมูลไม่สำเร็จ ('+r.status+')');
+ return (await r.json()).content.sha}
+
+async function syncNow(manual){
+ const c=ghCfg();if(!c||!c.token||!db||!localStorage.getItem(GHS))return '';
+ if(ghBusy){ghAgain=true;return ''}
+ ghBusy=true;setStatus('⏳ กำลังซิงค์...');let err='',applied=false,ok=false;
+ try{
+  for(let n=0;n<5&&!ok;n++){
+   stamp();const v0=ghVer,dirty=localStorage.getItem(GHD)==='1',st=JSON.parse(localStorage.getItem(GHS)||'{}');
+   const rem=await ghPull(dirty||manual?null:st.etag);
+   if(ghVer!==v0)continue;
+   if(rem.same){ok=true;break}
+   if(rem.data&&!(dirty&&rem.sha===st.sha)){const m=merge(db,rem.data);if(m!==db){db=m;db._h=null;normDb();stamp();persist();if(!dirty||rem.sha!==st.sha)applied=true}}
+   if(dirty){const ns=await ghPut(rem.sha);if(ns===null)continue;
+    if(ghVer===v0)localStorage.removeItem(GHD);else ghAgain=true;
+    localStorage.setItem(GHS,JSON.stringify({sha:ns,etag:null}))}
+   else localStorage.setItem(GHS,JSON.stringify({sha:rem.sha,etag:rem.etag}));
+   ok=true}
+  if(!ok)err='ซิงค์ชนกันหลายครั้ง กรุณาลองใหม่อีกครั้ง'
+ }catch(e){err=ghErr(e)}
+ ghBusy=false;
+ err?setStatus('⚠️ '+err,'#dc2626'):setStatus('☁️ ซิงค์แล้ว '+hm(),'#059669');
+ if(applied){const lg=$('#login');if(lg&&lg.style.display!=='none')fillCgLogin();refreshView()}
+ if(ghAgain){ghAgain=false;setTimeout(()=>syncNow(),300)}
+ return err}
+function syncSoon(){clearTimeout(ghTimer);ghTimer=setTimeout(()=>syncNow(),1500)}
+function refreshView(force){const a0=$('#app');if(!a0||a0.style.display==='none')return;const mo=$('#modal');if(mo&&mo.style.display==='flex')return;
+ if(!['dash','patients','map','cgs','sch','report'].includes(curPage)||!PAGES[curPage])return;
+ const a=document.activeElement;if(!force&&a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName))return;const y=window.scrollY;PAGES[curPage][1]();window.scrollTo(0,y)}
+async function ghForcePush(){let err='';
+ try{setStatus('⏳ กำลังส่งข้อมูลทั้งหมด...');stamp();db.epoch=Date.now();persist();
+  for(let n=0;n<3;n++){const rem=await ghPull(),ns=await ghPut(rem.sha);if(ns!==null){localStorage.setItem(GHS,JSON.stringify({sha:ns,etag:null}));localStorage.removeItem(GHD);setStatus('☁️ ส่งข้อมูลแล้ว '+hm(),'#059669');return ''}}
+  err='ชนกันหลายครั้ง ลองใหม่อีกครั้ง'}catch(e){err=ghErr(e)}
+ setStatus('⚠️ '+err,'#dc2626');return err}
+
+/* หน้าจอตั้งค่า */
+function ghModal(){const c=ghCfg()||{};
+ modal(`<h3>☁️ เชื่อมต่อ GitHub</h3>
+ <p class="mut" style="font-size:13px;margin-top:0">ใช้ <b>Repository แบบ Private</b> สำหรับเก็บข้อมูลเท่านั้น (ข้อมูลผู้ป่วยเป็นข้อมูลส่วนบุคคล ห้ามใช้ Repo สาธารณะ) และสร้าง Fine-grained Token ให้สิทธิ์ <b>Contents: Read and write</b> เฉพาะ Repo นั้น</p>
+ <div class="form">
+ <label>Owner (ชื่อบัญชี/องค์กร)<input id="ghO" value="${esc(c.owner||'')}" placeholder="เช่น hos14463"></label>
+ <label>Repository<input id="ghR" value="${esc(c.repo||'')}" placeholder="เช่น smartcg-data"></label>
+ <label>Branch<input id="ghB" value="${esc(c.branch||'main')}"></label>
+ <label>ชื่อไฟล์ข้อมูล<input id="ghP" value="${esc(c.path||'data.json')}"></label>
+ <label class="full">Personal Access Token<input id="ghT" type="password" autocomplete="off" value="${esc(c.token||'')}" placeholder="github_pat_..."></label>
+ <div class="full err" id="gherr"></div>
+ <div class="full" style="display:flex;gap:10px"><button type="button" onclick="ghConnect()">💾 บันทึกและเชื่อมต่อ</button><button type="button" class="sec" onclick="closeM()">ปิด</button></div></div>`)}
+async function ghConnect(){
+ const c={owner:$('#ghO').value.trim(),repo:$('#ghR').value.trim(),branch:$('#ghB').value.trim()||'main',path:($('#ghP').value.trim()||'data.json').replace(/^\/+/,''),token:$('#ghT').value.trim()},er=$('#gherr');
+ if(!c.owner||!c.repo||!c.token)return er.textContent='กรุณากรอก Owner, Repository และ Token ให้ครบ';
+ er.style.color='#64748b';er.textContent='⏳ กำลังทดสอบการเชื่อมต่อ...';
+ const old={k:localStorage.getItem(GHK),s:localStorage.getItem(GHS),d:localStorage.getItem(GHD)};
+ try{localStorage.setItem(GHK,JSON.stringify(c));const rem=await ghPull();
+  localStorage.setItem(GHD,'1');
+  if(rem.data){
+   if(confirm('พบข้อมูลบน GitHub อยู่แล้ว\n\nตกลง = ใช้ข้อมูลจาก GitHub แทนข้อมูลในเครื่องนี้ (แนะนำสำหรับเครื่องใหม่)\nยกเลิก = รวมข้อมูลในเครื่องนี้เข้ากับ GitHub')){db=rem.data;db._h=null;normDb();stamp();persist();localStorage.removeItem(GHD)}}
+  localStorage.setItem(GHS,JSON.stringify({sha:rem.sha,etag:null}));
+  const e=await syncNow(true);if(e)throw new Error(e);
+  closeM();if($('#login').style.display!=='none')fillCgLogin();else{refreshView(true)}
+  alert('เชื่อมต่อ GitHub สำเร็จ ข้อมูลจะซิงค์ทุกเครื่องอัตโนมัติ');if($('#app').style.display!=='none'&&curPage==='set')rSet()
+ }catch(e){er.style.color='#dc2626';er.textContent='เชื่อมต่อไม่สำเร็จ: '+ghErr(e);
+  ['GHK','GHS','GHD'].forEach((n,i)=>{const k=[GHK,GHS,GHD][i],v=[old.k,old.s,old.d][i];v===null?localStorage.removeItem(k):localStorage.setItem(k,v)})}}
+function ghCard(){const c=ghCfg(),on=ghReady();
+ return `<div class="card"><h3>☁️ ซิงค์ข้อมูลกับ GitHub (ใช้ข้อมูลร่วมกันทุกเครื่อง)</h3>
+ <p class="mut">${on?`เชื่อมต่อแล้ว: <b>${esc(c.owner)}/${esc(c.repo)}</b> · ไฟล์ <b>${esc(c.path)}</b> · branch ${esc(c.branch)}<br>เมื่อมีการบันทึก ระบบส่งขึ้น GitHub อัตโนมัติ และเครื่องอื่นจะดึงข้อมูลใหม่ทุกประมาณ 45 วินาที`:'ยังไม่ได้เชื่อมต่อ — กด "เชื่อมต่อ GitHub" แล้วกรอกข้อมูล Repository และ Token'}</p>
+ <p class="err">⚠️ ใช้ Repository แบบ Private เท่านั้น และอย่าแชร์ Token ให้บุคคลที่ไม่ได้รับอนุญาต</p>
+ <div class="toolbar"><button onclick="ghModal()">⚙️ ${on?'แก้ไขการเชื่อมต่อ':'เชื่อมต่อ GitHub'}</button>${on?`<button class="sec" onclick="ghManual()">🔄 ซิงค์ตอนนี้</button><button class="sec" onclick="ghForceUi()">⬆️ ส่งข้อมูลเครื่องนี้ทับ GitHub</button><button class="del" onclick="ghOff()">ยกเลิกการเชื่อมต่อ</button>`:''}</div></div>`}
+async function ghManual(){const e=await syncNow(true);alert(e||'ซิงค์เรียบร้อย')}
+async function ghForceUi(){if(!confirm('ข้อมูลบน GitHub (และทุกเครื่อง) จะถูกแทนที่ด้วยข้อมูลของเครื่องนี้ ยืนยัน?'))return;const e=await ghForcePush();alert(e||'ส่งข้อมูลเรียบร้อย')}
+function ghOff(){if(!confirm('ยกเลิกการเชื่อมต่อ GitHub บนเครื่องนี้? (ข้อมูลในเครื่องยังอยู่)'))return;[GHK,GHS,GHD].forEach(k=>localStorage.removeItem(k));setStatus('');rSet()}
+setInterval(()=>{if(!document.hidden)syncNow()},45000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncNow()});
+window.addEventListener('online',()=>syncNow());
+
+/* ---------- LOGIN ---------- */
+function fillCgLogin(){load();const sel=$('#lcgId');if(sel)sel.innerHTML=db.cgs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+function toggleCgSel(val){$('#cgSelBox').style.display=val==='cg'?'block':'none';if(val==='cg'){fillCgLogin()}}
+function doLogin(e){
+ e.preventDefault();
+ load();
+ const role=$('#lrole').value,u=$('#lu').value.trim(),p=$('#lp').value;
+ $('#lerr').textContent='';
+ 
+ if(role==='admin'){
+  if(u==='hos14463'&&p==='hos14463'){
+   currentUser={role:'admin',cgId:null,name:'ผู้ดูแลระบบ (Admin)'};
+   sessionStorage.setItem('scg_user',JSON.stringify(currentUser));
+   start();
+  }else{
+   $('#lerr').textContent='ชื่อผู้ใช้หรือรหัสผ่าน Admin ไม่ถูกต้อง';
+  }
+ }else{
+  if(u==='14463'&&p==='14463'){
+   const cgId=$('#lcgId').value;
+   if(!cgId)return $('#lerr').textContent='กรุณาเลือกชื่อ CG';
+   const c=db.cgs.find(x=>x.id===cgId);
+   currentUser={role:'cg',cgId:cgId,name:c?c.name:'CG'};
+   sessionStorage.setItem('scg_user',JSON.stringify(currentUser));
+   start();
+  }else{
+   $('#lerr').textContent='ชื่อผู้ใช้หรือรหัสผ่าน CG ไม่ถูกต้อง';
+  }
+ }
+}
+function logout(){sessionStorage.removeItem('scg_user');location.reload()}
+function start(){const s=sessionStorage.getItem('scg_user');if(!s)return;try{currentUser=JSON.parse(s)}catch(e){return logout()}
+ $('#login').style.display='none';$('#app').style.display='flex';load();$('#userRoleBadge').textContent=currentUser.name;if(currentUser.role==='cg')state.cg=currentUser.cgId;go('dash')}
+window.onload=async()=>{load();if(ghReady())await Promise.race([syncNow(),new Promise(r=>setTimeout(r,8000))]);fillCgLogin();if(sessionStorage.getItem('scg_user'))start()};
+
+const PAGES={
+ dash:['🏠 แดชบอร์ด',()=>rDash(),['admin','cg']],
+ patients:['👴 ผู้สูงอายุ/ผู้ป่วย',()=>rPat(),['admin','cg']],
+ map:['🗺️ แผนที่บ้านผู้รับบริการ',()=>rMap(),['admin']],
+ cgs:['🧑‍⚕️ ผู้ดูแล (CG)',()=>rCg(),['admin']],
+ adl:['📋 ประเมิน ADL',()=>rAdl(),['admin','cg']],
+ tai:['🧩 ประเมิน TAI',()=>rTai(),['admin','cg']],
+ sch:['📅 ตารางเยี่ยมบ้าน',()=>rSch(),['admin','cg']],
+ visit:['🏡 บันทึกเยี่ยมบ้าน',()=>rVisit(),['admin','cg']],
+ report:['📊 รายงานสรุปภาพรวม',()=>rReport(),['admin']],
+ set:['⚙️ ตั้งค่าระบบ',()=>rSet(),['admin']]
+};
+function go(p){if(!PAGES[p][2].includes(currentUser.role))return alert('คุณไม่มีสิทธิ์เข้าถึงเมนูนี้');
+ $('#nav').innerHTML=Object.entries(PAGES).filter(([k,v])=>v[2].includes(currentUser.role)).map(([k,v])=>`<a class="${k===p?'act':''}" onclick="go('${k}')">${v[0]}</a>`).join('')+`<a onclick="logout()">🚪 ออกจากระบบ</a>`;
+ $('#sideNav').classList.remove('open');curPage=p;PAGES[p][1]();window.scrollTo(0,0)}
+const M=h=>{$('#main').innerHTML=`<button class="menu-btn" onclick="$('#sideNav').classList.toggle('open')">☰ เมนูหลัก</button>`+h};
+function modal(h){const mo=$('#modal');mo.innerHTML=`<div class="box">${h}</div>`;mo.style.display='flex'}
+function closeM(){$('#modal').style.display='none'}
+const cgOpts=(sel,all)=>`<option value="">${all}</option>`+db.cgs.map(c=>`<option value="${c.id}" ${c.id===sel?'selected':''}>${esc(c.name)}</option>`).join('');
+const patOpts=sel=>{let h='<option value="">- เลือกผู้ป่วย -</option>';const list=currentUser.role==='cg'?activeP().filter(p=>p.cgId===currentUser.cgId):activeP();
+ [...db.cgs.map(c=>[c.id,c.name]),['','ยังไม่กำหนด CG']].forEach(([id,n])=>{const ps=list.filter(p=>(p.cgId||'')===id);if(ps.length)h+=`<optgroup label="${esc(n)}">${ps.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''}>${esc(p.name)} (ม.${esc(p.moo)})</option>`).join('')}</optgroup>`});return h};
+
+/* ---------- DASHBOARD ---------- */
+function monthOpts(sel){const keys=new Set();let h='';
+ for(let fy=2572;fy>=2569;fy--){let o='';for(let i=11;i>=0;i--){const y0=fy-544,mm=10+i,y=mm>12?y0+1:y0,m=mm>12?mm-12:mm,k=mkey(y,m);keys.add(k);o+=`<option value="${k}" ${k===sel?'selected':''}>${TM[m-1]} ${y+543}</option>`}h+=`<optgroup label="ปีงบประมาณ ${fy}">${o}</optgroup>`}
+ if(!keys.has(sel))h=`<option value="${sel}" selected>${thMonth(sel)}</option>`+h;return h}
+function monthsBack(key,n){let [y,m]=key.split('-').map(Number);const r=[];for(let i=0;i<n;i++){r.unshift(mkey(y,m));m--;if(m<1){m=12;y--}}return r}
+function missedOf(p,key){const sch=db.schedules[key];if(!sch)return 0;const ds=sch.visits[p.id]||[];const t=new Date(),tk=mkey(t.getFullYear(),t.getMonth()+1);let cut;
+ if(key<tk)cut=99;else if(key===tk)cut=t.getDate()-1;else return 0;
+ const due=ds.filter(d=>d<=cut).length,done=db.visits.filter(v=>v.pid===p.id&&v.date.startsWith(key)).length;return Math.max(0,due-done)}
+function cgStat(c,key){const ps=activeP().filter(p=>p.cgId===c.id),vs=db.visits.filter(v=>v.cgId===c.id&&v.date.startsWith(key)),seen=new Set(vs.map(v=>v.pid));
+ return{c,ps,vs,got:ps.filter(p=>seen.has(p.id)).length,hrs:vs.reduce((a,v)=>a+vHrs(v),0),missed:ps.filter(p=>missedOf(p,key)>0).length,
+  bed:ps.filter(p=>hasAdl(p)&&+p.adl<=4).length,home:ps.filter(p=>hasAdl(p)&&+p.adl>=5&&+p.adl<=11).length}}
+function kpi(icon,val,label,sub,c,g){return `<div class="kpi" style="--c:${c};--g:${g}"><div class="ki">${icon}</div><div><b>${val}</b><span>${label}</span><small>${sub}</small></div></div>`}
+function rDash(){
+ if(!state.dm)state.dm=mkey(now0.getFullYear(),now0.getMonth()+1);
+ const key=state.dm,isCG=currentUser.role==='cg';
+ const cgs=isCG?db.cgs.filter(c=>c.id===currentUser.cgId):db.cgs;
+ const st=cgs.map(c=>cgStat(c,key));
+ const totP=st.reduce((a,s)=>a+s.ps.length,0),totV=st.reduce((a,s)=>a+s.vs.length,0),totH=st.reduce((a,s)=>a+s.hrs,0),totM=st.reduce((a,s)=>a+s.missed,0);
+ const months=monthsBack(key,12),cnt={};
+ db.visits.forEach(v=>{const k=v.date.slice(0,7);(cnt[v.cgId]=cnt[v.cgId]||{})[k]=(cnt[v.cgId][k]||0)+1});
+ let max=1;cgs.forEach(c=>months.forEach(k=>{max=Math.max(max,(cnt[c.id]||{})[k]||0)}));
+ const act=isCG?activeP().filter(p=>p.cgId===currentUser.cgId):activeP(),g=[1,2,3,4].map(i=>act.filter(p=>+p.group===i).length);
+
+ const n=new Date(),tk=mkey(n.getFullYear(),n.getMonth()+1),sch=db.schedules[tk],td=n.getDate(),tdIso=todayISO();let today=[];
+ if(sch)Object.entries(sch.visits).forEach(([pid,ds])=>{const p=P(pid);if(p&&p.status!=='inactive'&&(!isCG||p.cgId===currentUser.cgId)&&ds.includes(td))today.push(p)});
+ const duty=sch?cgs.filter(c=>sch.duty[c.id]===td):[];
+
+ M(`<div class="dhero"><div class="ic">👥</div><div><h1>แดชบอร์ด Caregiver</h1><p>การเยี่ยมราย Caregiver เดือน${thMonth(key)} · ย้อนหลัง 12 เดือน</p></div>
+ <select onchange="state.dm=this.value;rDash()">${monthOpts(key)}</select></div>
+
+ <div class="kpis">
+ ${kpi('👥',cgs.length,'Caregiver',`ดูแล ${totP} ราย`,'#a47148','linear-gradient(135deg,#c08a5b,#7d5a40)')}
+ ${kpi('➕',totV,'ครั้งที่เยี่ยมเดือนนี้',`เฉลี่ย ${cgs.length?fmtH(totV/cgs.length):0} ครั้ง/คน`,'#10b981','linear-gradient(135deg,#34d399,#059669)')}
+ ${kpi('⏱️',fmtH(totH),'ชั่วโมงให้บริการ','จากเวลาที่บันทึก','#3b82f6','linear-gradient(135deg,#60a5fa,#4f46e5)')}
+ ${kpi('🔔',totM,'ขาดการเยี่ยม (ราย)','ณ วันนี้ เทียบกับตารางนัด','#f43f5e','linear-gradient(135deg,#fb7185,#e11d48)')}
+ </div>
+
+ <div class="cgcards">${st.map((s,i)=>{const pct=s.ps.length?Math.round(s.got/s.ps.length*100):0;return `<div class="cgc">
+  <div class="hd"><div class="av" style="background:${AVC[db.cgs.indexOf(s.c)%AVC.length]}">${initial(s.c.name)}</div><div><b>${esc(s.c.name)}</b><small>ดูแล ${s.ps.length} ราย · ติดเตียง ${s.bed} · ติดบ้าน ${s.home}</small></div></div>
+  <div class="bar"><i style="width:${pct}%"></i></div>
+  <div class="cst"><div><b>${s.vs.length}</b><small>ครั้งที่เยี่ยม</small></div><div><b>${s.got}/${s.ps.length}</b><small>ได้รับเยี่ยม</small></div><div><b class="${s.missed?'red':''}">${s.missed}</b><small>ขาดเยี่ยม</small></div><div><b>${fmtH(s.hrs)}</b><small>ชั่วโมง</small></div></div>
+  <div class="acts"><button class="obtn" onclick="state.vm='${key}';state.vcg='${s.c.id}';go('visit')">☰ การเยี่ยม</button><button class="obtn" onclick="printClaim('${s.c.id}','${key}')">📄 รายงานเบิก</button></div></div>`}).join('')||'<div class="card">ยังไม่มีข้อมูล CG</div>'}</div>
+
+ <div class="heat"><div class="hh"><div class="ic2">📅</div><div><b style="font-size:17px">จำนวนครั้งที่เยี่ยม ย้อนหลัง 12 เดือน</b><br><small class="mut">สีเข้ม = เยี่ยมมาก</small></div></div>
+ <div class="tw"><table><tr><th>Caregiver</th>${months.map(k=>{const [y,m]=k.split('-').map(Number);return `<th>${TMS[m-1]} ${String(y+543).slice(2)}</th>`}).join('')}<th>รวม</th></tr>
+ ${cgs.map(c=>{let sum=0;return `<tr><td><b>${esc(c.name)}</b></td>${months.map(k=>{const v=(cnt[c.id]||{})[k]||0;sum+=v;const a=v?0.12+0.6*v/max:0.04;return `<td><span class="hc" style="background:rgba(139,100,71,${a.toFixed(2)})">${v}</span></td>`}).join('')}<td><b>${sum}</b></td></tr>`}).join('')}</table></div></div>
+
+ <div class="card"><h3>👴 สรุปผู้สูงอายุในความดูแล (${act.length} ราย)</h3><div class="chips">
+ <div class="chip">กลุ่ม 1<b>${g[0]}</b></div><div class="chip">กลุ่ม 2<b>${g[1]}</b></div><div class="chip">กลุ่ม 3<b>${g[2]}</b></div><div class="chip">กลุ่ม 4<b>${g[3]}</b></div>
+ <div class="chip">ติดสังคม<b>${act.filter(p=>hasAdl(p)&&+p.adl>=12).length}</b></div><div class="chip">ติดบ้าน<b>${act.filter(p=>hasAdl(p)&&+p.adl>=5&&+p.adl<=11).length}</b></div><div class="chip">ติดเตียง<b>${act.filter(p=>hasAdl(p)&&+p.adl<=4).length}</b></div></div></div>
+
+ <div class="card"><h3>📌 งานและนัดหมายวันนี้ (${thDate(tdIso)})</h3>
+ ${!sch?`<p class="mut">ยังไม่ได้สร้างตารางเยี่ยมบ้านของเดือนนี้ ${!isCG?`<button class="sm" onclick="go('sch')">ไปสร้างตาราง</button>`:''}</p>`:''}
+ ${duty.length?`<p>🏢 เวรประจำศูนย์วันนี้: <b>${duty.map(c=>esc(c.name)).join(', ')}</b></p>`:''}
+ ${today.length?`<div class="tw"><table><tr><th>ผู้สูงอายุ</th><th>หมู่</th><th>กลุ่ม</th><th>CG</th><th>สถานะ</th><th></th></tr>${today.map(p=>{const ok=db.visits.some(v=>v.pid===p.id&&v.date===tdIso);return `<tr><td>${esc(p.name)}</td><td>ม.${esc(p.moo)}</td><td>${p.group}</td><td>${esc(cgName(p.cgId))}</td><td>${ok?'<span class="badge b-grn">เยี่ยมแล้ว</span>':'<span class="badge b-amb">รอเยี่ยม</span>'}</td><td>${ok?'':`<button class="sm" onclick="startVisit('${p.id}','${tdIso}')">บันทึกเยี่ยม</button>`}</td></tr>`}).join('')}</table></div>`:(sch?'<p class="mut">ไม่มีนัดเยี่ยมบ้านวันนี้</p>':'')}</div>`)}
+
+function printClaim(cgId,key){const c=db.cgs.find(x=>x.id===cgId);if(!c)return;const S=db.settings;
+ const vs=db.visits.filter(v=>v.cgId===cgId&&v.date.startsWith(key)).sort((a,b)=>a.date.localeCompare(b.date));
+ const sch=db.schedules[key],dd=sch&&sch.duty[cgId];let tot=0;
+ const rows=vs.map((v,i)=>{const p=P(v.pid)||{},h=vHrs(v);tot+=h;return `<tr><td>${i+1}</td><td>${thDate(v.date)}</td><td class="l">${esc(p.name||'-')}</td><td>${p.group??''}</td><td>${v.tStart&&v.tEnd?v.tStart+' - '+v.tEnd:'-'}</td><td>${fmtH(h)}</td><td class="l">${esc([...(v.help||[]),v.helpOther].filter(Boolean).join(', '))}</td></tr>`}).join('');
+ if(dd)tot+=+S.dutyHrs||0;
+ const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>รายงานเบิก ${esc(c.name)}</title>
+ <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+ <style>body{font-family:Sarabun,sans-serif;padding:24px;font-size:14px;color:#111}h2,h3{text-align:center;margin:4px 0}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #333;padding:6px;text-align:center}td.l{text-align:left}th{background:#f3eee8}.sig{display:flex;justify-content:space-around;margin-top:50px;text-align:center}.np{text-align:center;margin:10px}.ft{text-align:center;margin-top:40px;font-size:12px;color:#666}@media print{.np{display:none}@page{size:A4;margin:12mm}}</style></head><body>
+ <div class="np"><button onclick="print()" style="padding:10px 20px;font-size:16px">🖨️ พิมพ์ / บันทึกเป็น PDF</button></div>
+ <h3>${db.settings.orgName}</h3><h2>แบบรายงานการปฏิบัติงานเพื่อเบิกค่าตอบแทนผู้ดูแลผู้สูงอายุ (Caregiver)</h2>
+ <p style="text-align:center">ประจำเดือน <b>${thMonth(key)}</b> &nbsp; ชื่อผู้ปฏิบัติงาน <b>${esc(c.name)}</b> &nbsp; พื้นที่ ${esc(c.area||'-')}</p>
+ <table><tr><th>ลำดับ</th><th>วันที่</th><th>ชื่อ-สกุลผู้สูงอายุ</th><th>กลุ่ม</th><th>เวลา</th><th>ชั่วโมง</th><th>กิจกรรมที่ปฏิบัติ</th></tr>
+ ${rows||'<tr><td colspan="7">ไม่มีบันทึกการเยี่ยมในเดือนนี้</td></tr>'}
+ ${dd?`<tr><td>★</td><td>${thDate(key+'-'+pad(dd))}</td><td class="l">ปฏิบัติงานเวรประจำศูนย์</td><td>-</td><td>-</td><td>${S.dutyHrs}</td><td class="l">ปฏิบัติงานประจำศูนย์</td></tr>`:''}
+ <tr><th colspan="5">รวม ${vs.length} ครั้ง${dd?' + เวรศูนย์ 1 ครั้ง':''}</th><th>${fmtH(tot)}</th><th></th></tr></table>
+ <div class="sig"><div>ลงชื่อ.......................................<br>(${esc(c.name)})<br>ผู้ปฏิบัติงาน</div><div>ลงชื่อ.......................................<br>(.......................................)<br>ผู้ตรวจสอบ / Care Manager</div></div>
+ <div class="ft">พัฒนาโดย นายเอกพล อาจโยธา ผอ.รพ.สต.บ้านห้วยอาลัย</div></body></html>`;
+ const w=window.open('','_blank');if(!w)return alert('กรุณาอนุญาต Pop-up ในบราวเซอร์');w.document.write(html);w.document.close()}
+
+/* ---------- MAP VIEW (สำหรับ Admin เท่านั้น) ---------- */
+function rMap(){
+ const act=activeP();const mapped=act.filter(p=>p.lat&&p.lng);
+ const tk=mkey(now0.getFullYear(),now0.getMonth()+1);
+ const missedList=act.filter(p=>missedOf(p,tk)>0);
+ const bedList=act.filter(p=>hasAdl(p)&&+p.adl<=4);
+ const homeList=act.filter(p=>hasAdl(p)&&+p.adl>=5&&+p.adl<=11);
+
+ M(`<div class="dhero"><div class="ic">🗺️</div><div><h1>แผนที่บ้านผู้รับบริการ</h1><p>แสดงพิกัดบ้านผู้สูงอายุและผู้มีภาวะพึ่งพิงในพื้นที่</p></div></div>
+ <div class="card" style="margin-top:16px">
+   <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+     <div class="chip">ทั้งหมด <b>${act.length}</b> ราย</div>
+     <div class="chip">ปักหมุดแล้ว <b>${mapped.length}</b> ราย</div>
+     <div class="chip">ยังไม่มีพิกัด <b>${act.length-mapped.length}</b> ราย</div>
+     <div class="chip" style="background:#fee2e2;color:#991b1b">ขาดการเยี่ยม <b>${missedList.length}</b> ราย</div>
+   </div>
+   <div id="leafletMap" style="width:100%;height:520px;border-radius:12px;border:1px solid #cbd5e1"></div>
+ </div>`);
+
+ setTimeout(()=>{
+  const map=L.map('leafletMap').setView([17.88,101.95],13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  const bounds=[];
+  act.forEach(p=>{
+   if(p.lat&&p.lng){
+    const lat=+p.lat,lng=+p.lng;bounds.push([lat,lng]);
+    const [c,cl]=adlCat(p.adl);const miss=missedOf(p,tk);
+    let color='green';if(hasAdl(p)&&+p.adl<=4)color='red';else if(hasAdl(p)&&+p.adl>=5&&+p.adl<=11)color='orange';
+    const markerHtml=`<div style="background:${color};width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 4px #000"></div>`;
+    const icon=L.divIcon({html:markerHtml,className:'',iconSize:[16,16]});
+    const popup=`<b>${esc(p.name)}</b><br>ม.${esc(p.moo)} | ADL: ${p.adl??'-'} (${c})<br>กลุ่ม: ${p.group} | CG: ${esc(cgName(p.cgId))}<br>${miss>0?`<span style="color:red">⚠️ ขาดการเยี่ยม ${miss} ครั้ง</span>`:'<span style="color:green">✓ ปกติ</span>'}<br><a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank">📍 นำทางด้วย Google Maps</a>`;
+    L.marker([lat,lng],{icon}).addTo(map).bindPopup(popup);
+   }
+  });
+  if(bounds.length)map.fitBounds(bounds,{padding:[50,50]});
+ },300);
+}
+
+/* ---------- PATIENTS ---------- */
+function rPat(){const q=state.q.toLowerCase(),base=currentUser.role==='cg'?db.patients.filter(p=>p.cgId===currentUser.cgId):db.patients;
+ const list=base.filter(p=>(!state.cg||p.cgId===state.cg)&&(state.gf===''||String(p.group)===state.gf)&&(!q||[p.name,p.cid,p.phone,p.disease,p.moo,p.address].join(' ').toLowerCase().includes(q))).sort((a,b)=>cgName(a.cgId).localeCompare(cgName(b.cgId),'th')||(+a.moo-+b.moo));
+ M(`<h2>ฐานข้อมูลผู้สูงอายุ / ผู้ป่วยพึ่งพิง</h2><div class="card"><div class="toolbar">
+ <button onclick="editPat()">➕ เพิ่มผู้ป่วย</button>
+ <input id="pq" placeholder="🔍 ค้นหา ชื่อ / เลขบัตร / โรค" value="${esc(state.q)}" oninput="state.q=this.value;rPatKeep()" style="flex:1;min-width:180px;width:auto">
+ ${currentUser.role==='admin'?`<select style="width:auto" onchange="state.cg=this.value;rPat()">${cgOpts(state.cg,'CG ทั้งหมด')}</select>`:''}
+ <select style="width:auto" onchange="state.gf=this.value;rPat()"><option value="">ทุกกลุ่ม</option>${[0,1,2,3,4].map(i=>`<option value="${i}" ${state.gf===String(i)?'selected':''}>${GROUPS[i]}</option>`).join('')}</select>
+ <span class="mut" style="margin-left:auto">พบ ${list.length} ราย</span></div>
+ <div class="tw"><table><tr><th>#</th><th>ชื่อ-สกุล</th><th>วันเกิด</th><th>อายุ</th><th>ที่อยู่ / พิกัด</th><th>โทร</th><th>โรคประจำตัว</th><th>ADL</th><th>TAI</th><th>กลุ่ม</th><th>CG</th><th class="noprint">จัดการ</th></tr>
+ ${list.map((p,i)=>{const [c,cl]=adlCat(p.adl);return `<tr style="${p.status==='inactive'?'opacity:.5':''}"><td>${i+1}</td><td><b>${esc(p.name)}</b>${p.status==='inactive'?' <span class="badge b-gry">จำหน่าย</span>':''}</td><td style="white-space:nowrap">${p.birth?thDate(p.birth):'-'}</td><td>${age(p.birth)}</td><td>ม.${esc(p.moo)} ${p.lat&&p.lng?`<br><a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" class="badge b-blu" style="text-decoration:none">📍 นำทาง</a>`:''}</td><td>${esc(p.phone||'-')}</td><td>${esc(p.disease||'-')}</td><td style="white-space:nowrap">${p.adl??''} <span class="badge ${cl}">${c}</span></td><td>${esc(p.tai||'')}</td><td><b>${p.group}</b></td><td>${esc(cgName(p.cgId))}</td><td style="white-space:nowrap" class="noprint"><button class="sm" onclick="editPat('${p.id}')">แก้</button> <button class="sm sec" onclick="state.pre='${p.id}';go('adl')">ADL</button> <button class="sm sec" onclick="state.pre='${p.id}';go('tai')">TAI</button></td></tr>`}).join('')}</table></div></div>`)}
+function rPatKeep(){rPat();const e=$('#pq');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length)}}
+function editPat(id){const isCG=currentUser.role==='cg';const p=id?P(id):{name:'',cid:'',birth:'',sex:'',moo:'',address:'ต.ชมเจริญ อ.ปากชม จ.เลย',lat:'',lng:'',phone:'',disease:'',adl:'',tai:'',group:1,cgId:currentUser.cgId||'',relative:'',relPhone:'',status:'active'};
+ modal(`<h3>${id?'แก้ไข':'เพิ่ม'}ข้อมูลผู้สูงอายุ / ผู้ป่วย</h3><form class="form" onsubmit="savePat(event,'${id||''}')">
+ <label class="full">ชื่อ-สกุล (รวมคำนำหน้า) *<input name="name" required value="${esc(p.name)}"></label>
+ <label>เลขบัตรประชาชน 13 หลัก<input name="cid" maxlength="13" inputmode="numeric" value="${esc(p.cid)}"></label>
+ <label>เพศ<select name="sex">${['','ชาย','หญิง'].map(s=>`<option ${p.sex===s?'selected':''}>${s}</option>`).join('')}</select></label>
+ <label>วันเกิด<input type="date" name="birth" id="pBirth" value="${p.birth||''}"></label>
+ <label>หมู่ที่<input name="moo" value="${esc(p.moo)}"></label>
+ <label>เบอร์โทรศัพท์<input name="phone" inputmode="tel" value="${esc(p.phone)}"></label>
+ <label class="full">ที่อยู่ (บ้านเลขที่/ตำบล/อำเภอ/จังหวัด)<input name="address" value="${esc(p.address)}"></label>
+ <label>ละติจูด (Latitude)<div class="gps"><input name="lat" id="pLat" inputmode="decimal" value="${esc(p.lat||'')}"><button type="button" class="sm sec" onclick="getGPS()">📍 ดึงพิกัด</button></div></label>
+ <label>ลองจิจูด (Longitude)<input name="lng" id="pLng" inputmode="decimal" value="${esc(p.lng||'')}"></label>
+ <label class="full">โรคประจำตัว<input name="disease" placeholder="เช่น เบาหวาน, ความดันโลหิตสูง" value="${esc(p.disease)}"></label>
+ <label>คะแนน ADL (0-20)<input type="number" min="0" max="20" name="adl" value="${p.adl??''}"></label>
+ <label>TAI Class<select name="tai"><option value="">- เลือก TAI -</option>${TAI_CLASSES.map(t=>`<option ${p.tai===t?'selected':''}>${t}</option>`).join('')}</select></label>
+ <label>กลุ่มการดูแล<select name="group">${[0,1,2,3,4].map(i=>`<option value="${i}" ${+p.group===i?'selected':''}>${GROUPS[i]}</option>`).join('')}</select></label>
+ <label>CG ผู้ดูแล<select name="cgId" ${isCG?'disabled':''}>${cgOpts(p.cgId,'- เลือก CG -')}</select></label>
+ <label>ญาติ/ผู้ดูแลหลัก<input name="relative" value="${esc(p.relative||'')}"></label>
+ <label>เบอร์โทรญาติ<input name="relPhone" inputmode="tel" value="${esc(p.relPhone||'')}"></label>
+ <label>สถานะ<select name="status"><option value="active">อยู่ในความดูแล</option><option value="inactive" ${p.status==='inactive'?'selected':''}>จำหน่าย (เสียชีวิต/ย้าย)</option></select></label>
+ <div class="full err" id="perr"></div>
+ <div class="full" style="display:flex;gap:10px"><button type="submit">💾 บันทึก</button><button type="button" class="sec" onclick="closeM()">ยกเลิก</button>${id&&!isCG?`<button type="button" class="del" style="margin-left:auto" onclick="delPat('${id}')">ลบ</button>`:''}</div></form>`)}
+function getGPS(){if(!navigator.geolocation)return alert('อุปกรณ์ไม่รองรับ GPS');navigator.geolocation.getCurrentPosition(pos=>{$('#pLat').value=pos.coords.latitude.toFixed(6);$('#pLng').value=pos.coords.longitude.toFixed(6);alert('ดึงพิกัดสำเร็จ')},()=>alert('ไม่สามารถดึงพิกัดได้ กรุณาอนุญาตสิทธิ์ตำแหน่ง'),{enableHighAccuracy:true,timeout:15000})}
+function savePat(e,id){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const err=t=>$('#perr').textContent=t;
+ f.cid=(f.cid||'').replace(/\D/g,'');f.name=f.name.trim();
+ if(f.cid&&!validCID(f.cid))return err('เลขบัตรประชาชน 13 หลักไม่ถูกต้อง');
+ if(f.cid&&db.patients.some(p=>p.cid===f.cid&&p.id!==id))return err('เลขบัตรประชาชนนี้มีในระบบแล้ว');
+ if(currentUser.role==='cg')f.cgId=currentUser.cgId;
+ f.group=+f.group;f.adl=f.adl===''?'':+f.adl;if(!f.sex)f.sex=guessSex(f.name);
+ if(id)Object.assign(P(id),f);else db.patients.push({id:uid(),...f});save();closeM();rPat()}
+function delPat(id){if(!confirm('ยืนยันลบผู้ป่วยรายนี้และประวัติทั้งหมด?\n(แนะนำเปลี่ยนสถานะเป็น "จำหน่าย" แทน)'))return;
+ db.patients=db.patients.filter(p=>p.id!==id);db.adl=db.adl.filter(x=>x.pid!==id);db.tai=db.tai.filter(x=>x.pid!==id);db.visits=db.visits.filter(x=>x.pid!==id);Object.values(db.schedules).forEach(s=>delete s.visits[id]);save();closeM();rPat()}
+
+/* ---------- CG ---------- */
+function rCg(){M(`<h2>จัดการข้อมูลผู้ดูแล (Caregiver)</h2><div class="card"><div class="toolbar"><button onclick="editCg()">➕ เพิ่ม CG</button><span class="mut" style="margin-left:auto">รวม ${db.cgs.length} คน</span></div>
+ <div class="tw"><table><tr><th>#</th><th>ชื่อ-สกุล</th><th>เบอร์โทร</th><th>พื้นที่</th><th>ผู้ป่วย</th><th>ภาระงาน/เดือน</th><th class="noprint">จัดการ</th></tr>
+ ${db.cgs.map((c,i)=>{const ps=activeP().filter(p=>p.cgId===c.id),a=ps.filter(p=>p.group==1||p.group==2).length,b=ps.filter(p=>p.group>=3).length;return `<tr><td>${i+1}</td><td><b>${esc(c.name)}</b></td><td>${esc(c.phone||'-')}</td><td>${esc(c.area||'-')}</td><td><b>${ps.length}</b> ราย</td><td>เยี่ยม ${a*2+b*4} ครั้ง + เวรศูนย์ 1</td><td style="white-space:nowrap" class="noprint"><button class="sm" onclick="editCg('${c.id}')">แก้ไข</button> <button class="sm sec" onclick="state.cg='${c.id}';go('patients')">รายชื่อ</button></td></tr>`}).join('')}</table></div></div>`)}
+function editCg(id){const c=id?db.cgs.find(x=>x.id===id):{name:'',cid:'',phone:'',area:'',note:''};
+ modal(`<h3>${id?'แก้ไข':'เพิ่ม'}ข้อมูล CG</h3><form class="form" onsubmit="saveCg(event,'${id||''}')">
+ <label class="full">ชื่อ-สกุล CG *<input name="name" required value="${esc(c.name)}"></label>
+ <label>เลขบัตรประชาชน<input name="cid" maxlength="13" inputmode="numeric" value="${esc(c.cid||'')}"></label>
+ <label>เบอร์โทรศัพท์<input name="phone" inputmode="tel" value="${esc(c.phone||'')}"></label>
+ <label class="full">พื้นที่รับผิดชอบ<input name="area" value="${esc(c.area||'')}"></label>
+ <label class="full">หมายเหตุ<input name="note" value="${esc(c.note||'')}"></label>
+ <div class="full err" id="cerr"></div>
+ <div class="full" style="display:flex;gap:10px"><button type="submit">💾 บันทึก</button><button type="button" class="sec" onclick="closeM()">ยกเลิก</button>${id?`<button type="button" class="del" style="margin-left:auto" onclick="delCg('${id}')">ลบ</button>`:''}</div></form>`)}
+function saveCg(e,id){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));f.cid=f.cid.replace(/\D/g,'');f.name=f.name.trim();
+ if(f.cid&&!validCID(f.cid))return $('#cerr').textContent='เลขบัตรประชาชนไม่ถูกต้อง';
+ if(id)Object.assign(db.cgs.find(c=>c.id===id),f);else db.cgs.push({id:uid(),...f});save();closeM();rCg()}
+function delCg(id){const n=db.patients.filter(p=>p.cgId===id).length;if(n)return alert(`ยังมีผู้ป่วยในความดูแล ${n} ราย กรุณาย้ายไป CG อื่นก่อน`);if(!confirm('ยืนยันลบ CG?'))return;db.cgs=db.cgs.filter(c=>c.id!==id);save();closeM();rCg()}
+
+/* ---------- ADL ---------- */
+function rAdl(){const pid=state.pre||'';state.pre=null;
+ M(`<h2>แบบประเมิน Barthel ADL Index</h2><div class="card"><div class="form">
+ <label class="full">เลือกผู้ป่วย *<select id="ap" onchange="adlHist()">${patOpts(pid)}</select></label>
+ <label>วันที่ประเมิน<input type="date" id="adate" value="${todayISO()}"></label>
+ <label>ผู้ประเมิน<input id="aby" value="${esc(currentUser.name)}"></label></div></div>
+ <div class="card"><div class="score" id="ascore">คะแนนรวม: 0 / 20 (ยังไม่ประเมิน)</div>
+ ${ADL_ITEMS.map((it,i)=>`<div class="q"><b>${it[0]}</b><div class="opts">${it[1].map((o,s)=>`<label class="chk-item"><input type="radio" name="a${i}" value="${s}" onchange="adlCalc()"><span><b>${s} คะแนน:</b> ${o}</span></label>`).join('')}</div></div>`).join('')}
+ <button onclick="saveAdl()">💾 บันทึก ADL</button></div>
+ <div class="card"><h3>ประวัติ ADL</h3><div id="ahist"></div></div>`);adlHist()}
+function adlVals(){return ADL_ITEMS.map((_,i)=>{const r=document.querySelector(`input[name=a${i}]:checked`);return r?+r.value:null})}
+function adlCalc(){const v=adlVals(),s=v.reduce((a,b)=>a+(b||0),0),n=v.filter(x=>x!==null).length,[c,cl]=adlCat(s);$('#ascore').innerHTML=`คะแนนรวม: <b>${s}</b> / 20 ${n===10?`<span class="badge ${cl}">${c}</span>`:`<span class="mut">(ตอบ ${n}/10)</span>`}`}
+function saveAdl(){const pid=$('#ap').value,v=adlVals();if(!pid)return alert('กรุณาเลือกผู้ป่วย');if(v.includes(null))return alert('กรุณาประเมินให้ครบ 10 ข้อ');
+ const s=v.reduce((a,b)=>a+b,0),date=$('#adate').value;db.adl.push({id:uid(),pid,date,items:v,score:s,by:$('#aby').value});
+ const p=P(pid);p.adl=s;p.adlDate=date;save();alert(`บันทึกสำเร็จ: ${p.name}\nADL = ${s} (${adlCat(s)[0]})`);state.pre=pid;rAdl()}
+function adlHist(){const pid=$('#ap').value,l=db.adl.filter(x=>x.pid===pid).sort((a,b)=>b.date.localeCompare(a.date));
+ $('#ahist').innerHTML=!pid?'<p class="mut">เลือกผู้ป่วยเพื่อดูประวัติ</p>':l.length?`<div class="tw"><table><tr><th>วันที่</th><th>คะแนน</th><th>ผล</th><th>รายข้อ</th><th>ผู้ประเมิน</th><th></th></tr>${l.map(x=>{const [c,cl]=adlCat(x.score);return `<tr><td>${thDate(x.date)}</td><td><b>${x.score}</b>/20</td><td><span class="badge ${cl}">${c}</span></td><td>${x.items.join('-')}</td><td>${esc(x.by)}</td><td><button class="sm del" onclick="if(confirm('ลบ?')){db.adl=db.adl.filter(y=>y.id!=='${x.id}');save();adlHist()}">ลบ</button></td></tr>`}).join('')}</table></div>`:'<p class="mut">ยังไม่มีประวัติ</p>'}
+
+/* ---------- TAI ---------- */
+function rTai(){const pid=state.pre||'';state.pre=null;
+ M(`<h2>แบบประเมิน TAI</h2><div class="card"><div class="form">
+ <label class="full">เลือกผู้ป่วย *<select id="tp" onchange="taiHist()">${patOpts(pid)}</select></label>
+ <label>วันที่ประเมิน<input type="date" id="tdate" value="${todayISO()}"></label>
+ <label>ผู้ประเมิน<input id="tby" value="${esc(currentUser.name)}"></label></div></div>
+ <div class="card"><div class="score" id="tscore">กรุณาประเมินให้ครบ 4 ด้าน</div>
+ ${TAI_ITEMS.map(([k,t,o])=>`<div class="q"><b>${t}</b><div class="opts">${o.map((x,s)=>`<label class="chk-item"><input type="radio" name="t${k}" value="${s}" onchange="taiCalc()"><span><b>${s}:</b> ${x}</span></label>`).join('')}</div></div>`).join('')}
+ <label class="chk-item" style="margin:10px 0"><input type="checkbox" id="tgrp" checked><span>อัปเดตกลุ่มการดูแลของผู้ป่วยตามผล TAI อัตโนมัติ</span></label>
+ <button onclick="saveTai()">💾 บันทึก TAI</button>
+ <details style="margin-top:14px"><summary style="cursor:pointer;color:var(--p);font-weight:600">ℹ️ เกณฑ์ TAI → กลุ่มการดูแล</summary><div class="tw"><table style="margin-top:8px"><tr><th>TAI</th><th>ความหมาย</th><th>กลุ่ม</th><th>เยี่ยม/เดือน</th></tr>${TAI_CLASSES.map(t=>`<tr><td><b>${t}</b></td><td>${TAI_DESC[t]}</td><td>${GROUPS[TAI2GROUP[t]]}</td><td>${visitsNeeded(TAI2GROUP[t])}</td></tr>`).join('')}</table></div></details></div>
+ <div class="card"><h3>ประวัติ TAI</h3><div id="thist"></div></div>`);taiHist()}
+function taiVals(){const o={};for(const [k] of TAI_ITEMS){const r=document.querySelector(`input[name=t${k}]:checked`);if(!r)return null;o[k]=+r.value}return o}
+function taiCalc(){const v=taiVals();if(!v)return;const c=taiClass(v.m,v.c,v.e,v.t),g=TAI2GROUP[c];$('#tscore').innerHTML=`ผล TAI: <b>${c}</b> — ${TAI_DESC[c]}<br>👉 <span class="badge b-blu">${GROUPS[g]}</span> (เยี่ยม ${visitsNeeded(g)} ครั้ง/เดือน)`}
+function saveTai(){const pid=$('#tp').value,v=taiVals();if(!pid)return alert('กรุณาเลือกผู้ป่วย');if(!v)return alert('กรุณาประเมินให้ครบ 4 ด้าน');
+ const c=taiClass(v.m,v.c,v.e,v.t),g=TAI2GROUP[c],p=P(pid);db.tai.push({id:uid(),pid,date:$('#tdate').value,...v,cls:c,group:g,by:$('#tby').value});
+ p.tai=c;if($('#tgrp').checked)p.group=g;save();alert(`บันทึกสำเร็จ: TAI = ${c} (${GROUPS[g]})`);state.pre=pid;rTai()}
+function taiHist(){const pid=$('#tp').value,l=db.tai.filter(x=>x.pid===pid).sort((a,b)=>b.date.localeCompare(a.date));
+ $('#thist').innerHTML=!pid?'<p class="mut">เลือกผู้ป่วยเพื่อดูประวัติ</p>':l.length?`<div class="tw"><table><tr><th>วันที่</th><th>M</th><th>C</th><th>E</th><th>T</th><th>TAI</th><th>กลุ่ม</th><th>ผู้ประเมิน</th><th></th></tr>${l.map(x=>`<tr><td>${thDate(x.date)}</td><td>${x.m}</td><td>${x.c}</td><td>${x.e}</td><td>${x.t}</td><td><b>${x.cls}</b></td><td>${GROUPS[x.group]}</td><td>${esc(x.by)}</td><td><button class="sm del" onclick="if(confirm('ลบ?')){db.tai=db.tai.filter(y=>y.id!=='${x.id}');save();taiHist()}">ลบ</button></td></tr>`).join('')}</table></div>`:'<p class="mut">ยังไม่มีประวัติ</p>'}
+
+/* ---------- SCHEDULE ---------- */
+function holSet(){const s=new Set();(db.settings.holidays||'').split(/\s+/).forEach(l=>{const m=l.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(m){let y=+m[1];if(y>2400)y-=543;s.add(`${y}-${pad(m[2])}-${pad(m[3])}`)}});return s}
+function workDays(y,m){const n=new Date(y,m,0).getDate(),h=holSet(),r=[];for(let d=1;d<=n;d++){const w=new Date(y,m-1,d).getDay();if(!db.settings.weekend&&(w===0||w===6))continue;if(h.has(`${y}-${pad(m)}-${pad(d)}`))continue;r.push(d)}return r}
+function genSch(){const key=mkey(state.y,state.m);if(db.schedules[key]&&!confirm('มีตารางเดือนนี้แล้ว ต้องการสร้างใหม่ทับหรือไม่?'))return;
+ const days=workDays(state.y,state.m);if(!days.length)return alert('ไม่มีวันทำงานในเดือนนี้');
+ const sch={created:new Date().toISOString(),visits:{},duty:{}},n=Math.max(db.cgs.length,1);
+ db.cgs.forEach((c,ci)=>sch.duty[c.id]=days[Math.floor((ci+0.5)*days.length/n)%days.length]);
+ db.cgs.forEach(c=>{const avail=days.filter(d=>d!==sch.duty[c.id]),ld={};avail.forEach(d=>ld[d]=0);
+  activeP().filter(p=>p.cgId===c.id).sort((a,b)=>visitsNeeded(b.group)-visitsNeeded(a.group)).forEach(p=>{const k=visitsNeeded(p.group),got=[];
+   for(let j=0;j<k;j++){const lo=Math.floor(j*avail.length/k),hi=Math.max(lo,Math.floor((j+1)*avail.length/k)-1);let best=null;
+    for(let i=lo;i<=hi&&i<avail.length;i++){const d=avail[i];if(got.includes(d))continue;if(best===null||ld[d]<ld[best])best=d}
+    if(best!==null){got.push(best);ld[best]++}}
+   sch.visits[p.id]=got.sort((a,b)=>a-b)})});
+ db.schedules[key]=sch;save();rSch()}
+function tg(pid,d){if(currentUser.role==='cg'&&P(pid).cgId!==currentUser.cgId)return;const s=db.schedules[mkey(state.y,state.m)];if(!s)return;const a=s.visits[pid]||(s.visits[pid]=[]),i=a.indexOf(d);i>=0?a.splice(i,1):(a.push(d),a.sort((x,y)=>x-y));save();rSch()}
+function tgDuty(cg,d){if(currentUser.role==='cg'&&cg!==currentUser.cgId)return;const s=db.schedules[mkey(state.y,state.m)];if(!s)return;s.duty[cg]=s.duty[cg]===d?null:d;save();rSch()}
+function delSch(){if(confirm('ลบตารางเดือนนี้?')){delete db.schedules[mkey(state.y,state.m)];save();rSch()}}
+function rSch(){const y=state.y,m=state.m,key=mkey(y,m),sch=db.schedules[key],nd=new Date(y,m,0).getDate(),wd=new Set(workDays(y,m)),S=db.settings,isA=currentUser.role==='admin';
+ const done=new Set(db.visits.filter(v=>v.date.startsWith(key)).map(v=>v.pid+'|'+(+v.date.slice(8))));
+ const cgs=!isA?db.cgs.filter(c=>c.id===currentUser.cgId):db.cgs.filter(c=>!state.cg||c.id===state.cg);
+ let h=`<div class="report-header"><h3>${db.settings.orgName}</h3><h3>ตารางการปฏิบัติงาน CG ประจำเดือน ${TM[m-1]} พ.ศ. ${y+543}</h3></div>
+ <h2>📅 ตารางเยี่ยมบ้าน ${TM[m-1]} พ.ศ. ${y+543}</h2><div class="card"><div class="toolbar noprint">
+ <select style="width:auto" onchange="state.m=+this.value;rSch()">${TM.map((t,i)=>`<option value="${i+1}" ${i+1===m?'selected':''}>${t}</option>`).join('')}</select>
+ <select style="width:auto" onchange="state.y=+this.value-543;rSch()">${[2025,2026,2027,2028,2029].map(yy=>`<option value="${yy+543}" ${yy===y?'selected':''}>พ.ศ. ${yy+543}</option>`).join('')}</select>
+ ${isA?`<select style="width:auto" onchange="state.cg=this.value;rSch()">${cgOpts(state.cg,'CG ทั้งหมด')}</select><button onclick="genSch()">⚙️ สร้างตารางอัตโนมัติ</button>`:''}
+ ${sch?`<button class="sec" onclick="csvSch()">⬇️ CSV</button><button class="sec" onclick="window.print()">🖨️ พิมพ์</button>`:''}${sch&&isA?`<button class="del" onclick="delSch()">ลบตาราง</button>`:''}</div>
+ <p class="mut noprint" style="font-size:13px;margin-top:0">กลุ่ม 1-2 เยี่ยม 2 ครั้ง • กลุ่ม 3-4 เยี่ยม 4 ครั้ง • เวรศูนย์ 1 ครั้ง/เดือน • แตะช่องวันเพื่อเพิ่ม/ลบนัด &nbsp; <span class="badge" style="background:#fde68a">x นัด</span> <span class="badge" style="background:#86efac">✓ เยี่ยมแล้ว</span> <span class="badge" style="background:#93c5fd">ศ เวรศูนย์</span></p>`;
+ if(!sch){M(h+`<p class="mut">ยังไม่มีตารางเดือนนี้ ${isA?'— กด "สร้างตารางอัตโนมัติ"':'รอผู้ดูแลระบบสร้างตาราง'}</p></div>`);return}
+ h+=`<div class="tw"><table class="sch"><tr><th>#</th><th>ผู้สูงอายุ</th><th>หมู่</th><th>กลุ่ม</th>${range(nd).map(d=>`<th class="${wd.has(d)?'':'off'}">${d}<br><small>${DOW[new Date(y,m-1,d).getDay()]}</small></th>`).join('')}<th>นัด</th><th>ชม.</th><th>เยี่ยม</th></tr>`;
+ cgs.forEach(c=>{const ps=activeP().filter(p=>p.cgId===c.id),dd=sch.duty[c.id];let tv=0,tdn=0;
+  const rows=ps.map((p,i)=>{const ds=sch.visits[p.id]||[],need=visitsNeeded(p.group);let dn=0;tv+=ds.length;
+   const cells=range(nd).map(d=>{const has=ds.includes(d),ok=done.has(p.id+'|'+d);if(ok)dn++;return `<td class="d ${wd.has(d)?'':'off'} ${ok?'done':has?'on':''}" onclick="tg('${p.id}',${d})">${ok?'✓':has?'x':''}</td>`}).join('');tdn+=dn;
+   return `<tr><td>${i+1}</td><td class="nm">${esc(p.name)}${ds.length<need?` <span class="badge b-red noprint">ขาด ${need-ds.length}</span>`:''}</td><td>${esc(p.moo)}</td><td>${p.group}</td>${cells}<td><b>${ds.length}</b></td><td>${ds.length*S.visitHrs}</td><td>${dn}/${ds.length}</td></tr>`}).join('');
+  h+=`<tr class="cgh"><td colspan="${nd+7}">👤 ${esc(c.name)} — ${ps.length} ราย | นัด ${tv} ครั้ง | เวรศูนย์ ${dd?'วันที่ '+dd:'-'} | รวม ${tv*S.visitHrs+(dd?S.dutyHrs:0)} ชม. | เยี่ยมแล้ว ${tdn}</td></tr>
+  <tr><td>★</td><td class="nm"><i>เวรประจำศูนย์</i></td><td></td><td></td>${range(nd).map(d=>`<td class="d ${wd.has(d)?'':'off'} ${dd===d?'duty':''}" onclick="tgDuty('${c.id}',${d})">${dd===d?'ศ':''}</td>`).join('')}<td><b>${dd?1:0}</b></td><td>${dd?S.dutyHrs:0}</td><td></td></tr>${rows}`});
+ M(h+'</table></div></div>')}
+function csvSch(){const y=state.y,m=state.m,sch=db.schedules[mkey(y,m)],nd=new Date(y,m,0).getDate(),S=db.settings;
+ const rows=[[`ตารางการปฏิบัติงาน CG เดือน ${TM[m-1]} พ.ศ. ${y+543}`],['CG','ลำดับ','ชื่อ-สกุล','หมู่','กลุ่ม',...range(nd),'นัด','ชม.']];
+ db.cgs.filter(c=>currentUser.role!=='cg'||c.id===currentUser.cgId).forEach(c=>{const dd=sch.duty[c.id];rows.push([c.name,'★','เวรประจำศูนย์','','',...range(nd).map(d=>d===dd?'ศ':''),dd?1:0,dd?S.dutyHrs:0]);
+  activeP().filter(p=>p.cgId===c.id).forEach((p,i)=>{const ds=sch.visits[p.id]||[];rows.push(['',i+1,p.name,p.moo,p.group,...range(nd).map(d=>ds.includes(d)?'x':''),ds.length,ds.length*S.visitHrs])})});
+ dl(`ตารางCG_${TMS[m-1]}${y+543}.csv`,toCSV(rows),'text/csv;charset=utf-8')}
+
+/* ---------- VISIT ---------- */
+let tempVisitPhotos=[];
+function startVisit(pid,date){state.pre={pid,date,cg:P(pid).cgId};tempVisitPhotos=[];go('visit')}
+function handlePhotos(input){const files=input.files;if(!files||!files.length)return;
+ for(let i=0;i<files.length;i++){const f=files[i];const r=new FileReader();
+  r.onload=e=>{const img=new Image();img.onload=()=>{const MX=800,s=Math.min(1,MX/Math.max(img.width,img.height)),cv=document.createElement('canvas');cv.width=img.width*s;cv.height=img.height*s;cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+   tempVisitPhotos.push(cv.toDataURL('image/jpeg',0.6));
+   $('#photoPreview').innerHTML=tempVisitPhotos.map((src,idx)=>`<div style="display:inline-block;position:relative;margin:4px"><img src="${src}" style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1"><button type="button" onclick="tempVisitPhotos.splice(${idx},1);renderPhotos()" style="position:absolute;top:-6px;right:-6px;background:#dc2626;color:#fff;border:0;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer">×</button></div>`).join('')};img.src=e.target.result};r.readAsDataURL(f)}}
+function renderPhotos(){$('#photoPreview').innerHTML=tempVisitPhotos.map((src,idx)=>`<div style="display:inline-block;position:relative;margin:4px"><img src="${src}" style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1"><button type="button" onclick="tempVisitPhotos.splice(${idx},1);renderPhotos()" style="position:absolute;top:-6px;right:-6px;background:#dc2626;color:#fff;border:0;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer">×</button></div>`).join('')}
+function showPhotos(id){const v=db.visits.find(x=>x.id===id);if(!v)return;const arr=v.photos||(v.photo?[v.photo]:[]);
+ modal(`<h3>รูปภาพกิจกรรมการเยี่ยมบ้าน</h3><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">${arr.map(s=>`<img src="${s}" style="max-width:100%;max-height:70vh;border-radius:8px">`).join('')}</div><br><button onclick="closeM()">ปิด</button>`)}
+
+function setMins(m){
+ $('#inputMins').value=m;
+ document.querySelectorAll('.tchip').forEach(el=>el.classList.remove('active'));
+ event.target.classList.add('active');
+}
+
+function rVisit(){const pre=state.pre||{};state.pre=null;const d=pre.date||todayISO();if(!state.vm)state.vm=d.slice(0,7);const isCG=currentUser.role==='cg';tempVisitPhotos=[];
+ const nowTime=new Date().toTimeString().slice(0,5);
+ 
+ M(`<h2>🏡 บันทึกการเยี่ยมบ้าน</h2><div class="card noprint">
+ <form class="form" onsubmit="saveVisit(event)">
+ 
+ <div class="full" style="background:#faf8f5;padding:14px;border-radius:12px;border:1px solid #e7e0db">
+   <h3 style="margin-top:0;color:var(--br)">📅 1. วันเวลาการเยี่ยม</h3>
+   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+     <label>วันที่เยี่ยม *<input type="date" name="date" id="vd" required value="${d}" onchange="vInfo()"></label>
+     <label>เวลา *<input type="time" name="tStart" required value="${nowTime}"></label>
+   </div>
+   <div style="margin-top:10px">
+     <label style="margin-bottom:4px">เวลาที่ใช้ในการเยี่ยม (นาที)</label>
+     <input type="hidden" name="mins" id="inputMins" value="60">
+     <div class="time-chips">
+       <button type="button" class="tchip" onclick="setMins(30)">30 นาที</button>
+       <button type="button" class="tchip" onclick="setMins(45)">45 นาที</button>
+       <button type="button" class="tchip active" onclick="setMins(60)">60 นาที</button>
+       <button type="button" class="tchip" onclick="setMins(90)">90 นาที</button>
+       <button type="button" class="tchip" onclick="setMins(120)">120 นาที</button>
+     </div>
+   </div>
+ </div>
+
+ <label>ผู้ดูแล (CG) *<select name="cgId" id="vc" required onchange="vPats()" ${isCG?'disabled':''}>${isCG?`<option value="${currentUser.cgId}">${esc(currentUser.name)}</option>`:cgOpts(pre.cg||state.vcg||'','- เลือก CG -')}</select></label>
+ <label>ผู้สูงอายุ *<select name="pid" id="vp" required onchange="vInfo()"></select></label>
+ <div class="full" id="vi"></div>
+
+ <div class="full" style="background:#faf8f5;padding:14px;border-radius:12px;border:1px solid #e7e0db">
+   <h3 style="margin-top:0;color:var(--br)">❤️ 3. สัญญาณชีพและตรวจร่างกาย</h3>
+   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+     <label>ความดันตัวบน (mmHg)<input type="number" inputmode="numeric" name="bpS" id="vBpS" min="50" max="260" placeholder="เช่น 120"></label>
+     <label>ความดันตัวล่าง (mmHg)<input type="number" inputmode="numeric" name="bpD" id="vBpD" min="30" max="160" placeholder="เช่น 80"></label>
+     <label>ชีพจร (ครั้ง/นาที)<input type="number" inputmode="numeric" name="pulse" id="vPulse" min="20" max="200" placeholder="เช่น 72"></label>
+     <label>อุณหภูมิ (°C)<input type="number" step="0.1" inputmode="decimal" name="temp" id="vTemp" placeholder="เช่น 36.8"></label>
+     <label>การหายใจ (ครั้ง/นาที)<input type="number" inputmode="numeric" name="resp" id="vResp" placeholder="เช่น 18"></label>
+     <label>ออกซิเจนปลายนิ้ว (%)<input type="number" inputmode="numeric" name="spo2" id="vSpo2" placeholder="เช่น 98"></label>
+     <label>น้ำตาลปลายนิ้ว (มก./ดล.)<input type="number" inputmode="numeric" name="bs" id="vBs" placeholder="เช่น 110"></label>
+     <label>น้ำหนัก (กก.)<input type="number" step="0.1" inputmode="decimal" name="weight" id="vWeight" placeholder="เช่น 55.0"></label>
+   </div>
+   <small class="mut" style="display:block;margin-top:8px">💡 กรอกเฉพาะค่าที่วัดได้ ระบบจะแสดงค่าจากการเยี่ยมครั้งก่อนให้อัตโนมัติ</small>
+ </div>
+
+ <label class="full">แนบรูปภาพการเยี่ยมบ้าน (เลือกได้หลายรูป)<input type="file" accept="image/*" multiple onchange="handlePhotos(this)"><div id="photoPreview"></div></label>
+ <div class="full"><b>กิจกรรมที่ช่วยเหลือ</b><div class="chk-group">${HELPS.map(x=>`<label class="chk-item"><input type="checkbox" name="help" value="${x}"><span>${x}</span></label>`).join('')}</div>
+ <input name="helpOther" placeholder="กิจกรรมอื่นๆ เพิ่มเติม" style="margin-top:8px"></div>
+ <div class="full"><b>ความพึงพอใจของผู้สูงอายุ</b><div class="chk-group" style="grid-template-columns:repeat(3,1fr)">${SATS.map((s,i)=>`<label class="chk-item"><input type="radio" name="sat" value="${s}" ${i===0?'checked':''}><span>${s}</span></label>`).join('')}</div></div>
+ <label class="full">ปัญหา / อุปสรรค<textarea name="problem"></textarea></label>
+ <label class="full">วิธีแก้ไข / ข้อเสนอแนะ<textarea name="solution"></textarea></label>
+ <div class="full"><button type="submit" style="width:100%">💾 บันทึกรายงานการเยี่ยม</button></div></form></div>
+ <div class="card" id="vlist"></div>`);
+ vPats(pre.pid);vInfo();vList()}
+
+function vPats(sel){const c=$('#vc').value,ps=activeP().filter(p=>!c||p.cgId===c);$('#vp').innerHTML='<option value="">- เลือกผู้สูงอายุ -</option>'+ps.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''}>${esc(p.name)} (ม.${esc(p.moo)} กลุ่ม ${p.group})</option>`).join('');vInfo()}
+function vInfo(){const p=P($('#vp').value),d=$('#vd').value;if(!p||!d){$('#vi').innerHTML='';return}
+ const key=d.slice(0,7),sch=db.schedules[key],ds=sch?(sch.visits[p.id]||[]):[],cnt=db.visits.filter(v=>v.pid===p.id&&v.date.startsWith(key)).length,[c,cl]=adlCat(p.adl);
+ 
+ const lastV=db.visits.filter(v=>v.pid===p.id).sort((a,b)=>b.date.localeCompare(a.date))[0];
+ if(lastV){
+  if($('#vBpS')&&lastV.bpS)$('#vBpS').placeholder=`ครั้งก่อน ${lastV.bpS}`;
+  if($('#vBpD')&&lastV.bpD)$('#vBpD').placeholder=`ครั้งก่อน ${lastV.bpD}`;
+  if($('#vPulse')&&lastV.pulse)$('#vPulse').placeholder=`ครั้งก่อน ${lastV.pulse}`;
+  if($('#vTemp')&&lastV.temp)$('#vTemp').placeholder=`ครั้งก่อน ${lastV.temp}`;
+  if($('#vResp')&&lastV.resp)$('#vResp').placeholder=`ครั้งก่อน ${lastV.resp}`;
+  if($('#vSpo2')&&lastV.spo2)$('#vSpo2').placeholder=`ครั้งก่อน ${lastV.spo2}`;
+  if($('#vBs')&&lastV.bs)$('#vBs').placeholder=`ครั้งก่อน ${lastV.bs}`;
+  if($('#vWeight')&&lastV.weight)$('#vWeight').placeholder=`ครั้งก่อน ${lastV.weight}`;
+ }
+
+ $('#vi').innerHTML=`<div class="q" style="background:#f0fdfa;border-color:#99f6e4">อายุ <b>${age(p.birth)||'-'}</b> ปี | ${p.sex||'-'} | ADL <b>${p.adl??'-'}</b> <span class="badge ${cl}">${c}</span> | TAI <b>${p.tai||'-'}</b> | กลุ่ม <b>${p.group}</b> | โรค: ${esc(p.disease||'-')}<br>${p.lat&&p.lng?`<a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" style="color:#0f766e;font-weight:700">📍 เปิดแผนที่นำทาง</a><br>`:''}นัดเดือนนี้: ${ds.length?ds.map(x=>'วันที่ '+x).join(', '):'ไม่มีในตาราง'} | ครั้งนี้เป็นครั้งที่ <b>${cnt+1}</b> ของเดือน</div>`}
+
+function saveVisit(e){e.preventDefault();const fd=new FormData(e.target);
+ const mins=+fd.get('mins')||60;
+ const v={id:uid(),created:Date.now(),date:fd.get('date'),cgId:currentUser.role==='cg'?currentUser.cgId:$('#vc').value,pid:fd.get('pid'),tStart:fd.get('tStart'),mins:mins,bpS:fd.get('bpS'),bpD:fd.get('bpD'),pulse:fd.get('pulse'),temp:fd.get('temp'),resp:fd.get('resp'),spo2:fd.get('spo2'),bs:fd.get('bs'),weight:fd.get('weight'),photos:tempVisitPhotos,help:fd.getAll('help'),helpOther:(fd.get('helpOther')||'').trim(),sat:fd.get('sat'),problem:(fd.get('problem')||'').trim(),solution:(fd.get('solution')||'').trim()};
+ if(!v.pid)return alert('กรุณาเลือกผู้สูงอายุ');
+ db.visits.push(v);if(!save()){db.visits.pop();return}alert('บันทึกการเยี่ยมเรียบร้อย');state.vm=v.date.slice(0,7);state.pre={cg:v.cgId,date:v.date};tempVisitPhotos=[];rVisit()}
+function visitNo(v){return db.visits.filter(x=>x.pid===v.pid&&x.date.slice(0,7)===v.date.slice(0,7)).sort((a,b)=>a.date.localeCompare(b.date)||a.created-b.created).findIndex(x=>x.id===v.id)+1}
+function vRows(){return db.visits.filter(v=>v.date.startsWith(state.vm)&&(currentUser.role!=='cg'||v.cgId===currentUser.cgId)&&(!state.vcg||currentUser.role==='cg'||v.cgId===state.vcg)).sort((a,b)=>a.date.localeCompare(b.date)||a.created-b.created)}
+function vList(){const list=vRows();
+ $('#vlist').innerHTML=`<div class="report-header"><h3>${db.settings.orgName}</h3><h3>รายงานการดูแลผู้สูงอายุที่บ้าน ประจำเดือน ${thMonth(state.vm)}</h3></div>
+ <div class="toolbar noprint"><input type="month" style="width:auto" value="${state.vm}" onchange="if(this.value){state.vm=this.value;vList()}">
+ ${currentUser.role==='admin'?`<select style="width:auto" onchange="state.vcg=this.value;vList()">${cgOpts(state.vcg,'CG ทั้งหมด')}</select>`:''}
+ <button class="sec" onclick="window.print()">🖨️ พิมพ์</button><button class="sec" onclick="csvVisits()">⬇️ CSV</button></div>
+ <h3>📋 รายการเยี่ยมบ้าน ${thMonth(state.vm)} (${list.length} ครั้ง)</h3>
+ <div class="tw"><table><tr><th>#</th><th>วันที่</th><th>รูป</th><th>ครั้ง</th><th>ชื่อ-สกุล</th><th>ความดัน</th><th>ชีพจร</th><th>ชม.</th><th>กิจกรรม</th><th>พอใจ</th><th>CG</th><th class="noprint"></th></tr>
+ ${list.map((v,i)=>{const p=P(v.pid)||{},arr=v.photos||(v.photo?[v.photo]:[]);return `<tr><td>${i+1}</td><td style="white-space:nowrap">${thDate(v.date)}</td><td>${arr.length?`<img src="${arr[0]}" class="thumb" onclick="showPhotos('${v.id}')"><small style="display:block">(${arr.length})</small>`:'-'}</td><td><b>${visitNo(v)}</b></td><td><b>${esc(p.name||'-')}</b></td><td>${v.bpS?esc(v.bpS)+'/'+esc(v.bpD):'-'}</td><td>${v.pulse||'-'}</td><td>${fmtH(vHrs(v))}</td><td><small>${esc([...(v.help||[]),v.helpOther].filter(Boolean).join(', '))}</small></td><td>${esc(v.sat)}</td><td>${esc(cgName(v.cgId))}</td><td class="noprint"><button class="sm del" onclick="if(confirm('ลบบันทึกนี้?')){db.visits=db.visits.filter(x=>x.id!=='${v.id}');save();vList()}">ลบ</button></td></tr>`}).join('')||'<tr><td colspan="12" class="mut" style="text-align:center">ยังไม่มีบันทึก</td></tr>'}</table></div>`}
+function csvVisits(){const rows=[['ลำดับ','วันที่','ครั้งที่','ชื่อ-สกุล','เวลา','ชั่วโมง','ความดัน','ชีพจร','อุณหภูมิ','ออกซิเจน','น้ำตาล','น้ำหนัก','กิจกรรม','ความพอใจ','ปัญหา','วิธีแก้ไข','CG']];
+ vRows().forEach((v,i)=>{const p=P(v.pid)||{};rows.push([i+1,thDate(v.date),visitNo(v),p.name,v.tStart,fmtH(vHrs(v)),v.bpS?v.bpS+'/'+v.bpD:'',v.pulse,v.temp,v.spo2,v.bs,v.weight,[...(v.help||[]),v.helpOther].filter(Boolean).join(', '),v.sat,v.problem,v.solution,cgName(v.cgId)])});
+ dl(`บันทึกเยี่ยมบ้าน_${state.vm}.csv`,toCSV(rows),'text/csv;charset=utf-8')}
+
+/* ---------- REPORT ---------- */
+function rReport(){const act=activeP(),tot=act.length,g=[0,1,2,3,4].map(i=>act.filter(p=>+p.group===i).length),a={s:0,h:0,b:0,n:0};
+ act.forEach(p=>{if(!hasAdl(p))a.n++;else +p.adl>=12?a.s++:+p.adl>=5?a.h++:a.b++});
+ const pc=x=>tot?(x/tot*100).toFixed(1)+'%':'0%';
+ M(`<div class="report-header"><h3>${db.settings.orgName}</h3><h3>รายงานสรุปภาพรวมผู้สูงอายุและผู้ที่มีภาวะพึ่งพิง</h3></div>
+ <h2>📊 รายงานสรุปภาพรวม</h2><div class="card noprint"><button class="sec" onclick="window.print()">🖨️ พิมพ์รายงาน</button></div>
+ <div class="card"><h3>1. จำแนกตามกลุ่มการดูแล</h3><div class="tw"><table><tr><th>กลุ่ม</th><th>ความถี่การเยี่ยม</th><th>จำนวน</th><th>ร้อยละ</th></tr>
+ ${[1,2,3,4,0].map(i=>`<tr><td>${GROUPS[i]}</td><td>${visitsNeeded(i)} ครั้ง/เดือน</td><td><b>${g[i]}</b></td><td>${pc(g[i])}</td></tr>`).join('')}
+ <tr style="background:#f8fafc"><td colspan="2"><b>รวม</b></td><td><b>${tot}</b></td><td>100%</td></tr></table></div></div>
+ <div class="card"><h3>2. ระดับ ADL</h3><div class="tw"><table><tr><th>ระดับ</th><th>คะแนน</th><th>จำนวน</th><th>ร้อยละ</th></tr>
+ <tr><td><span class="badge b-grn">ติดสังคม</span></td><td>12-20</td><td><b>${a.s}</b></td><td>${pc(a.s)}</td></tr>
+ <tr><td><span class="badge b-amb">ติดบ้าน</span></td><td>5-11</td><td><b>${a.h}</b></td><td>${pc(a.h)}</td></tr>
+ <tr><td><span class="badge b-red">ติดเตียง</span></td><td>0-4</td><td><b>${a.b}</b></td><td>${pc(a.b)}</td></tr>
+ <tr><td>ยังไม่ประเมิน</td><td>-</td><td><b>${a.n}</b></td><td>${pc(a.n)}</td></tr></table></div></div>
+ <div class="card"><h3>3. ภาระงาน CG</h3><div class="tw"><table><tr><th>#</th><th>CG</th><th>ผู้ป่วย</th><th>กลุ่ม 1-2</th><th>กลุ่ม 3-4</th><th>เป้าหมายเยี่ยม/เดือน</th></tr>
+ ${db.cgs.map((c,i)=>{const ps=act.filter(p=>p.cgId===c.id),x=ps.filter(p=>p.group==1||p.group==2).length,y=ps.filter(p=>p.group>=3).length;return `<tr><td>${i+1}</td><td>${esc(c.name)}</td><td>${ps.length}</td><td>${x}</td><td>${y}</td><td><b>${x*2+y*4}</b> + เวรศูนย์ 1</td></tr>`}).join('')}</table></div></div>`)}
+
+/* ---------- SETTINGS ---------- */
+function rSet(){const S=db.settings;
+ M(`<h2>⚙️ ตั้งค่าระบบ</h2><div class="card"><h3>ตั้งค่าหน่วยงานและเงื่อนไข</h3><div class="form">
+ <label class="full">ชื่อสถานบริการ / หน่วยงาน<input id="s0" value="${esc(S.orgName||'')}"></label>
+ <label>ชม. ต่อการเยี่ยม 1 ครั้ง (ค่าตั้งต้น)<input type="number" id="s1" value="${S.visitHrs}" step="0.5" min="0"></label>
+ <label>ชม. เวรประจำศูนย์<input type="number" id="s2" value="${S.dutyHrs}" step="0.5" min="0"></label>
+ <label>นับเสาร์-อาทิตย์เป็นวันทำงาน<select id="s3"><option value="0">ไม่นับ</option><option value="1" ${S.weekend?'selected':''}>นับ</option></select></label>
+ <label class="full">วันหยุดนักขัตฤกษ์ (บรรทัดละ 1 วัน เช่น 2569-04-13)<textarea id="s4" rows="4">${esc(S.holidays)}</textarea></label></div><br><button onclick="saveSet()">💾 บันทึก</button></div>
+ ${ghCard()}<div class="card"><h3>สำรอง/กู้คืนข้อมูล</h3><p class="mut">ข้อมูลเก็บในเบราว์เซอร์ของเครื่องนี้ ควรสำรองเป็นประจำ</p><div class="toolbar">
+ <button onclick="dl('smartcg_backup_'+todayISO()+'.json',JSON.stringify(db),'application/json')">⬇️ สำรองข้อมูล (JSON)</button>
+ <label class="btnlike">⬆️ กู้คืนจากไฟล์<input type="file" accept=".json" hidden onchange="restore(this)"></label>
+ <button class="sec" onclick="csvPat()">⬇️ รายชื่อผู้ป่วย (CSV)</button>
+ <button class="del" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button></div></div>
+ <div class="card">ผู้ป่วย ${db.patients.length} • CG ${db.cgs.length} • ADL ${db.adl.length} • TAI ${db.tai.length} • เยี่ยมบ้าน ${db.visits.length} รายการ</div>`)}
+function saveSet(){Object.assign(db.settings,{orgName:$('#s0').value.trim(),visitHrs:+$('#s1').value||0,dutyHrs:+$('#s2').value||0,weekend:$('#s3').value==='1',holidays:$('#s4').value});save();alert('บันทึกการตั้งค่าแล้ว')}
+function restore(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.patients||!d.cgs)throw 0;if(!confirm('ข้อมูลปัจจุบันจะถูกแทนที่ ยืนยัน?'))return;db=d;db._h=null;normDb();save();load();alert('กู้คืนสำเร็จ');(async()=>{if(ghReady()&&confirm('ส่งข้อมูลที่กู้คืนไปทับบน GitHub ให้ทุกเครื่องด้วยหรือไม่?'))await ghForcePush();go('dash')})()}catch(e){alert('ไฟล์ไม่ถูกต้อง')}};r.readAsText(f)}
+function csvPat(){const rows=[['ชื่อ-สกุล','เลขบัตรประชาชน','วันเกิด','อายุ','เพศ','หมู่','ที่อยู่','Latitude','Longitude','เบอร์โทร','โรคประจำตัว','ADL','TAI','กลุ่ม','CG','ญาติ','เบอร์ญาติ','สถานะ']];
+ db.patients.forEach(p=>rows.push([p.name,p.cid?"'"+p.cid:'',p.birth?thDate(p.birth):'',age(p.birth),p.sex,p.moo,p.address,p.lat,p.lng,p.phone,p.disease,p.adl,p.tai,p.group,cgName(p.cgId),p.relative,p.relPhone,p.status==='inactive'?'จำหน่าย':'อยู่ในความดูแล']));
+ dl(`รายชื่อผู้สูงอายุ_${todayISO()}.csv`,toCSV(rows),'text/csv;charset=utf-8')}
+function resetAll(){if(prompt('พิมพ์ RESET เพื่อยืนยันล้างข้อมูลทั้งหมด')!=='RESET')return;localStorage.removeItem(KEY);load();alert('รีเซ็ตเรียบร้อย');(async()=>{if(ghReady()&&confirm('ล้างข้อมูลบน GitHub (ทุกเครื่อง) ด้วยหรือไม่?\nยกเลิก = ล้างเฉพาะเครื่องนี้ (ไม่แนะนำ)'))await ghForcePush();go('dash')})()}
+</script>
+</body>
+</html>
