@@ -135,7 +135,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 <div id="cgSelBox" style="display:none"><label>เลือกชื่อ CG ของท่าน<select id="lcgId"></select></label></div>
 <label>ชื่อผู้ใช้<input id="lu" autocomplete="username" required placeholder="กรอกชื่อผู้ใช้"></label>
 <label>รหัสผ่าน<input id="lp" type="password" autocomplete="current-password" required placeholder="กรอกรหัสผ่าน"></label>
-<div id="lerr" class="err"></div><button style="width:100%;margin-top:14px">เข้าสู่ระบบ</button><div style="text-align:center;margin-top:12px"><a href="#" onclick="ghModal();return false" style="font-size:13px;color:var(--p)">☁️ เชื่อมต่อ GitHub (สำหรับเครื่องใหม่)</a></div></form></div>
+<div id="lerr" class="err"></div><button style="width:100%;margin-top:14px">เข้าสู่ระบบ</button><div style="text-align:center;margin-top:12px"><a href="#" onclick="gsModal();return false" style="font-size:13px;color:var(--p)">☁️ เชื่อมต่อ Google Sheet (สำหรับเครื่องใหม่)</a></div></form></div>
 
 <div id="app">
   <nav class="side" id="sideNav">
@@ -211,129 +211,118 @@ function seed(){const d={cgs:[],patients:[],adl:[],tai:[],visits:[],schedules:{}
  SEED.forEach(([cg,ps])=>{const c={id:uid(),name:cg,cid:'',phone:'',area:'',note:''};d.cgs.push(c);const moos=new Set();
   ps.split(';').forEach(s=>{const [n,m,g,a]=s.split(',');moos.add(m);d.patients.push({id:uid(),name:n.trim(),cid:'',birth:'',sex:guessSex(n.trim()),moo:m,address:'ต.ชมเจริญ อ.ปากชม จ.เลย',lat:'',lng:'',phone:'',disease:'',adl:+a,tai:'',group:+g,cgId:c.id,relative:'',relPhone:'',status:'active'})});
   c.area='หมู่ '+[...moos].join(', ')});return d}
-function save(){stamp();try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){alert('หน่วยความจำเต็ม กรุณาลบบันทึกเก่าบางส่วน');return false}ghVer++;if(ghReady()){localStorage.setItem(GHD,'1');syncSoon()}return true}
+function save(){stamp();try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){alert('หน่วยความจำเต็ม กรุณาลบบันทึกเก่าบางส่วน');return false}if(gsReady())syncSoon();return true}
 function load(){try{db=JSON.parse(localStorage.getItem(KEY))}catch(e){db=null}if(!db||!db.patients||!db.cgs||!db.cgs.length){db=seed();save()}db.settings=Object.assign({orgName:'ศูนย์พัฒนาคุณภาพชีวิตผู้สูงอายุฯ อบต.ชมเจริญ',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});['adl','tai','visits'].forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{}}
 
-/* ---------- GITHUB SYNC ---------- */
-var curPage='dash',ghVer=0,ghBusy=false,ghAgain=false,ghTimer=null,ghStatus='';
-const GHK='smartcg_gh',GHS='smartcg_gh_state',GHD='smartcg_gh_dirty';
+/* ---------- GOOGLE SHEET SYNC ---------- */
+var curPage='dash',gsBusy=false,gsAgain=false,gsTimer=null,gsStatus='';
+const GSK='smartcg_gs',GSS='smartcg_gs_state';
 const COLS=['cgs','patients','adl','tai','visits'];
+const ALLC=[...COLS,'schedules','settings'];
 const hm=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
-const b64=s=>{const u=new TextEncoder().encode(s);let b='';for(let i=0;i<u.length;i+=0x8000)b+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(b)};
-const unb64=b=>{const s=atob(b.replace(/\s/g,'')),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new TextDecoder().decode(u)};
-function ghCfg(){try{return JSON.parse(localStorage.getItem(GHK))}catch(e){return null}}
-function ghReady(){const c=ghCfg();return !!(c&&c.token&&localStorage.getItem(GHS))}
-function ghErr(e){return e instanceof TypeError?'เชื่อมต่อ GitHub ไม่ได้ (ออฟไลน์?) ข้อมูลยังเก็บในเครื่อง จะส่งให้อัตโนมัติเมื่อออนไลน์':e.message}
-function setStatus(t,col){ghStatus=t;const e=$('#syncSt');if(e){e.textContent=t;e.style.color=col||''}}
+function gsCfg(){try{const c=JSON.parse(localStorage.getItem(GSK));return c&&c.url&&c.key?c:null}catch(e){return null}}
+function gsState(){try{return JSON.parse(localStorage.getItem(GSS))||{}}catch(e){return {}}}
+function gsReady(){return !!gsCfg()}
+function gsErr(e){return e&&(e.name==='AbortError'||e instanceof TypeError)?'เชื่อมต่อ Google Sheet ไม่ได้ (ออฟไลน์?) ข้อมูลยังเก็บในเครื่อง จะส่งให้เมื่อออนไลน์':(e&&e.message)||String(e)}
+function setStatus(t,col){gsStatus=t;const e=$('#syncSt');if(e){e.textContent=t;e.style.color=col||''}}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
-function normDb(){db.settings=Object.assign({orgName:'ศูนย์พัฒนาคุณภาพชีวิตผู้สูงอายุฯ อบต.ชมเจริญ',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});COLS.forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{}}
-const payload=d=>JSON.stringify(d,(k,v)=>k==='_h'?undefined:v);
+function normDb(){db.settings=Object.assign({orgName:'ศูนย์พัฒนาคุณภาพชีวิตผู้สูงอายุฯ อบต.ชมเจริญ',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});COLS.forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{};db._d=db._d||{}}
 
-/* ติดตามว่ารายการไหนถูกแก้/ลบ เพื่อใช้รวมข้อมูลจากหลายเครื่อง */
+/* ติดตามรายการที่ถูกเพิ่ม/แก้/ลบ เพื่อส่งขึ้น Google Sheet */
 function hsh(o){const s=JSON.stringify(o,(k,v)=>k==='_u'?undefined:v);let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return h+':'+s.length}
 function recMap(d,c){if(c==='schedules')return d.schedules||{};if(c==='settings')return d.settings?{settings:d.settings}:{};const m={};(d[c]||[]).forEach(r=>m[r.id]=r);return m}
-function stamp(){const t=Date.now(),first=!db._h;db._h=db._h||{};db.del=db.del||{};
- [...COLS,'schedules','settings'].forEach(c=>{const m=recMap(db,c),H=db._h[c]=db._h[c]||{};
-  for(const id in m){const r=m[id];if(!r||typeof r!=='object')continue;const h=hsh(r);if(H[id]!==h){if(!first){r._u=t;delete db.del[c+':'+id]}H[id]=h}}
-  for(const id in H)if(!(id in m)){if(!first&&c!=='settings')db.del[c+':'+id]=t;delete H[id]}})}
-function merge(L,R){const eL=L.epoch||0,eR=R.epoch||0;if(eR>eL)return R;if(eL>eR)return L;
- const del=Object.assign({},R.del||{});for(const k in (L.del||{}))del[k]=Math.max(del[k]||0,L.del[k]);
- const out=Object.assign({},R,L,{del}),pick=(a,b)=>!a?b:!b?a:((b._u||0)>(a._u||0)?b:a),alive=(c,id,x)=>(del[c+':'+id]||0)<=(x._u||0);
- COLS.forEach(c=>{const a=recMap(L,c),b=recMap(R,c),r=[];new Set([...Object.keys(a),...Object.keys(b)]).forEach(id=>{const x=pick(a[id],b[id]);if(alive(c,id,x))r.push(x)});out[c]=r});
- {const a=L.schedules||{},b=R.schedules||{},o={};new Set([...Object.keys(a),...Object.keys(b)]).forEach(id=>{const x=pick(a[id],b[id]);if(alive('schedules',id,x))o[id]=x});out.schedules=o}
- out.settings=pick(L.settings,R.settings);return out}
+function stamp(){const t=Date.now(),first=!db._h;db._h=db._h||{};db.del=db.del||{};db._d=db._d||{};
+ ALLC.forEach(c=>{const m=recMap(db,c),H=db._h[c]=db._h[c]||{};
+  for(const id in m){const r=m[id];if(!r||typeof r!=='object')continue;const h=hsh(r);if(H[id]!==h){if(!first){r._u=t;delete db.del[c+':'+id];db._d[c+':'+id]=t}H[id]=h}}
+  for(const id in H)if(!(id in m)){if(!first&&c!=='settings'){db.del[c+':'+id]=t;db._d[c+':'+id]=t}delete H[id]}})}
+function markAllDirty(){stamp();const t=Date.now();ALLC.forEach(c=>{const m=recMap(db,c);for(const id in m){const r=m[id];if(r&&typeof r==='object'){r._u=r._u||t;db._d[c+':'+id]=r._u}}});persist()}
 
-/* GitHub API */
-function ghApi(q,o){o=o||{};const c=ghCfg(),h={'Authorization':'Bearer '+c.token,'Accept':o.raw?'application/vnd.github.raw+json':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};if(o.inm)h['If-None-Match']=o.inm;if(o.body)h['Content-Type']='application/json';
- return fetch(`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${c.path.split('/').map(encodeURIComponent).join('/')}${q||''}`,{method:o.method||'GET',headers:h,body:o.body,cache:'no-store'})}
-async function ghPull(inm){const c=ghCfg(),q='?ref='+encodeURIComponent(c.branch);const r=await ghApi(q,{inm});
- if(r.status===304)return{same:true};
- if(r.status===404)return{sha:null,data:null,etag:null};
- if(r.status===401)throw new Error('Token ไม่ถูกต้องหรือหมดอายุ');
- if(r.status===403)throw new Error('Token ไม่มีสิทธิ์ หรือเรียก GitHub ถี่เกินโควตา');
- if(!r.ok)throw new Error('GitHub ตอบกลับผิดพลาด ('+r.status+')');
- const j=await r.json(),etag=r.headers.get('ETag');let txt;
- if(j.content&&j.encoding==='base64')txt=unb64(j.content);
- else{const r2=await ghApi(q,{raw:1});if(!r2.ok)throw new Error('อ่านไฟล์ไม่สำเร็จ ('+r2.status+')');txt=await r2.text()}
- return{sha:j.sha,etag,data:txt.trim()?JSON.parse(txt):null}}
-async function ghPut(sha){const c=ghCfg(),body={message:'smartcg sync '+new Date().toISOString(),content:b64(payload(db)),branch:c.branch};if(sha)body.sha=sha;
- const r=await ghApi('',{method:'PUT',body:JSON.stringify(body)});
- if(r.status===409||r.status===422)return null;
- if(r.status===404)throw new Error('ไม่พบ Repository/Branch หรือ Token ไม่มีสิทธิ์เขียน (ต้องตั้งสิทธิ์ Contents: Read and write)');
- if(r.status===401)throw new Error('Token ไม่ถูกต้องหรือหมดอายุ');
- if(r.status===403)throw new Error('Token ไม่มีสิทธิ์เขียน หรือเกินโควตา');
- if(!r.ok)throw new Error('ส่งข้อมูลไม่สำเร็จ ('+r.status+')');
- return (await r.json()).content.sha}
+function localRec(c,id){return c==='settings'?db.settings:c==='schedules'?db.schedules[id]:(db[c]||[]).find(r=>r.id===id)}
+function setRec(c,id,d){if(c==='settings')db.settings=d;else if(c==='schedules')db.schedules[id]=d;else{const a=db[c]=db[c]||[],i=a.findIndex(r=>r.id===id);i>=0?a[i]=d:a.push(d)}}
+function removeRec(c,id){if(c==='schedules')delete db.schedules[id];else if(c!=='settings')db[c]=(db[c]||[]).filter(r=>r.id!==id)}
+function applyRows(rows){let n=0,sets=false;const H=c=>(db._h[c]=db._h[c]||{});
+ rows.forEach(r=>{const c=r.c,id=r.id,key=c+':'+id;if(!ALLC.includes(c))return;
+  const cur=localRec(c,id),cu=cur?(cur._u||0):0;
+  if(r.del){if(cur&&r._u>=cu){removeRec(c,id);delete H(c)[id];delete db._d[key];db.del[key]=r._u;n++}else if(!cur)db.del[key]=Math.max(db.del[key]||0,r._u);return}
+  if(cur&&!(r._u>cu))return;
+  const d=r.data;d._u=r._u;if(c==='visits'&&cur&&cur.photos&&cur.photos.length)d.photos=cur.photos;
+  setRec(c,id,d);H(c)[id]=hsh(d);delete db._d[key];delete db.del[key];n++;if(c==='settings')sets=true});
+ if(n){normDb();if(sets)H('settings').settings=hsh(db.settings)}
+ return n}
+function enrich(c,d,r){
+ if(c==='patients')d.cgName=cgName(r.cgId);
+ if(c==='visits'){d.pName=(P(r.pid)||{}).name||'';d.cgName=cgName(r.cgId);d.nPhotos=(r.photos||(r.photo?[r.photo]:[])).length}
+ if(c==='adl'||c==='tai')d.pName=(P(r.pid)||{}).name||'';
+ if(c==='schedules')d.month=r.id||''}
+function buildDirty(){const out=[],keys=[];
+ for(const key in db._d){const i=key.indexOf(':'),c=key.slice(0,i),id=key.slice(i+1),r=recMap(db,c)[id],tomb=db.del[key];
+  if(r){const d=JSON.parse(JSON.stringify(r,(k,v)=>k==='photos'||k==='photo'?undefined:v));if(c==='schedules')d.month=id;enrich(c,d,r);if(c==='schedules')d.month=id;out.push({c,id,_u:r._u||Date.now(),data:d});keys.push([key,db._d[key]])}
+  else if(tomb){out.push({c,id,_u:tomb,del:1});keys.push([key,db._d[key]])}
+  else delete db._d[key]}
+ return{out,keys}}
+
+async function gsCall(body){const c=gsCfg(),ac=new AbortController(),tm=setTimeout(()=>ac.abort(),40000);
+ try{const r=await fetch(c.url,{method:'POST',body:JSON.stringify(Object.assign({key:c.key},body)),signal:ac.signal});
+  if(!r.ok)throw new Error('เซิร์ฟเวอร์ตอบกลับผิดพลาด ('+r.status+')');
+  let j;try{j=await r.json()}catch(e){throw new Error('ตอบกลับไม่ถูกต้อง ตรวจว่า URL เป็นของ Web App (ลงท้าย /exec) และตั้งสิทธิ์เป็น "Anyone"')}
+  if(!j.ok)throw new Error(j.err||'เกิดข้อผิดพลาด');return j}finally{clearTimeout(tm)}}
 
 async function syncNow(manual){
- const c=ghCfg();if(!c||!c.token||!db||!localStorage.getItem(GHS))return '';
- if(ghBusy){ghAgain=true;return ''}
- ghBusy=true;setStatus('⏳ กำลังซิงค์...');let err='',applied=false,ok=false;
+ if(!gsCfg()||!db)return '';
+ if(gsBusy){gsAgain=true;return ''}
+ gsBusy=true;setStatus('⏳ กำลังซิงค์...');let err='',applied=false,rej=0;
  try{
-  for(let n=0;n<5&&!ok;n++){
-   stamp();const v0=ghVer,dirty=localStorage.getItem(GHD)==='1',st=JSON.parse(localStorage.getItem(GHS)||'{}');
-   const rem=await ghPull(dirty||manual?null:st.etag);
-   if(ghVer!==v0)continue;
-   if(rem.same){ok=true;break}
-   if(rem.data&&!(dirty&&rem.sha===st.sha)){const m=merge(db,rem.data);if(m!==db){db=m;db._h=null;normDb();stamp();persist();if(!dirty||rem.sha!==st.sha)applied=true}}
-   if(dirty){const ns=await ghPut(rem.sha);if(ns===null)continue;
-    if(ghVer===v0)localStorage.removeItem(GHD);else ghAgain=true;
-    localStorage.setItem(GHS,JSON.stringify({sha:ns,etag:null}))}
-   else localStorage.setItem(GHS,JSON.stringify({sha:rem.sha,etag:rem.etag}));
-   ok=true}
-  if(!ok)err='ซิงค์ชนกันหลายครั้ง กรุณาลองใหม่อีกครั้ง'
- }catch(e){err=ghErr(e)}
- ghBusy=false;
+  const st=gsState(),pr=await gsCall({action:'pull',since:st.cursor||0});
+  stamp();if(applyRows(pr.rows||[])){applied=true;persist()}
+  st.cursor=pr.t;st.role=pr.role;st.cgId=pr.cgId;localStorage.setItem(GSS,JSON.stringify(st));
+  for(let g=0;g<50;g++){stamp();const {out,keys}=buildDirty();if(!out.length)break;
+   const bo=out.slice(0,60),bk=keys.slice(0,60),r=await gsCall({action:'push',recs:bo});
+   bk.forEach(([k,v])=>{if(db._d[k]===v)delete db._d[k]});persist();rej+=(r.rejected||[]).length}
+  if(rej)err='มี '+rej+' รายการที่เซิร์ฟเวอร์ไม่รับ (ไม่มีสิทธิ์หรือข้อมูลใหญ่เกินไป)'
+ }catch(e){err=gsErr(e)}
+ gsBusy=false;
  err?setStatus('⚠️ '+err,'#dc2626'):setStatus('☁️ ซิงค์แล้ว '+hm(),'#059669');
  if(applied){const lg=$('#login');if(lg&&lg.style.display!=='none')fillCgLogin();refreshView()}
- if(ghAgain){ghAgain=false;setTimeout(()=>syncNow(),300)}
+ if(gsAgain){gsAgain=false;setTimeout(()=>syncNow(),300)}
  return err}
-function syncSoon(){clearTimeout(ghTimer);ghTimer=setTimeout(()=>syncNow(),1500)}
+function syncSoon(){clearTimeout(gsTimer);gsTimer=setTimeout(()=>syncNow(),1500)}
 function refreshView(force){const a0=$('#app');if(!a0||a0.style.display==='none')return;const mo=$('#modal');if(mo&&mo.style.display==='flex')return;
  if(!['dash','patients','map','cgs','sch','report'].includes(curPage)||!PAGES[curPage])return;
  const a=document.activeElement;if(!force&&a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName))return;const y=window.scrollY;PAGES[curPage][1]();window.scrollTo(0,y)}
-async function ghForcePush(){let err='';
- try{setStatus('⏳ กำลังส่งข้อมูลทั้งหมด...');stamp();db.epoch=Date.now();persist();
-  for(let n=0;n<3;n++){const rem=await ghPull(),ns=await ghPut(rem.sha);if(ns!==null){localStorage.setItem(GHS,JSON.stringify({sha:ns,etag:null}));localStorage.removeItem(GHD);setStatus('☁️ ส่งข้อมูลแล้ว '+hm(),'#059669');return ''}}
-  err='ชนกันหลายครั้ง ลองใหม่อีกครั้ง'}catch(e){err=ghErr(e)}
- setStatus('⚠️ '+err,'#dc2626');return err}
+async function gsPushAll(){markAllDirty();return syncNow(true)}
 
 /* หน้าจอตั้งค่า */
-function ghModal(){const c=ghCfg()||{};
- modal(`<h3>☁️ เชื่อมต่อ GitHub</h3>
- <p class="mut" style="font-size:13px;margin-top:0">ใช้ <b>Repository แบบ Private</b> สำหรับเก็บข้อมูลเท่านั้น (ข้อมูลผู้ป่วยเป็นข้อมูลส่วนบุคคล ห้ามใช้ Repo สาธารณะ) และสร้าง Fine-grained Token ให้สิทธิ์ <b>Contents: Read and write</b> เฉพาะ Repo นั้น</p>
+function gsModal(){const c=gsCfg()||{};
+ modal(`<h3>☁️ เชื่อมต่อ Google Sheet</h3>
+ <p class="mut" style="font-size:13px;margin-top:0">ใส่ <b>URL ของ Web App</b> (ลงท้าย /exec) และ <b>รหัส (Key)</b> ที่ได้รับ<br>• ผู้ดูแลระบบ: ใช้ ADMIN_KEY ที่ตั้งไว้ใน Apps Script<br>• CG: ใช้รหัสเฉพาะตัวที่ผู้ดูแลระบบให้ (ดูได้ที่แท็บ CG ใน Google Sheet)</p>
  <div class="form">
- <label>Owner (ชื่อบัญชี/องค์กร)<input id="ghO" value="${esc(c.owner||'')}" placeholder="เช่น hos14463"></label>
- <label>Repository<input id="ghR" value="${esc(c.repo||'')}" placeholder="เช่น smartcg-data"></label>
- <label>Branch<input id="ghB" value="${esc(c.branch||'main')}"></label>
- <label>ชื่อไฟล์ข้อมูล<input id="ghP" value="${esc(c.path||'data.json')}"></label>
- <label class="full">Personal Access Token<input id="ghT" type="password" autocomplete="off" value="${esc(c.token||'')}" placeholder="github_pat_..."></label>
- <div class="full err" id="gherr"></div>
- <div class="full" style="display:flex;gap:10px"><button type="button" onclick="ghConnect()">💾 บันทึกและเชื่อมต่อ</button><button type="button" class="sec" onclick="closeM()">ปิด</button></div></div>`)}
-async function ghConnect(){
- const c={owner:$('#ghO').value.trim(),repo:$('#ghR').value.trim(),branch:$('#ghB').value.trim()||'main',path:($('#ghP').value.trim()||'data.json').replace(/^\/+/,''),token:$('#ghT').value.trim()},er=$('#gherr');
- if(!c.owner||!c.repo||!c.token)return er.textContent='กรุณากรอก Owner, Repository และ Token ให้ครบ';
+ <label class="full">URL ของ Web App<input id="gsU" value="${esc(c.url||'')}" placeholder="https://script.google.com/macros/s/.../exec"></label>
+ <label class="full">รหัส (Key)<input id="gsK" type="password" autocomplete="off" value="${esc(c.key||'')}"></label>
+ <div class="full err" id="gserr"></div>
+ <div class="full" style="display:flex;gap:10px"><button type="button" onclick="gsConnect()">💾 บันทึกและเชื่อมต่อ</button><button type="button" class="sec" onclick="closeM()">ปิด</button></div></div>`)}
+async function gsConnect(){
+ const url=$('#gsU').value.trim(),key=$('#gsK').value.trim(),er=$('#gserr');
+ if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url))return er.textContent='URL ไม่ถูกต้อง ต้องขึ้นต้น https://script.google.com/ และลงท้าย /exec';
+ if(!key)return er.textContent='กรุณากรอกรหัส (Key)';
  er.style.color='#64748b';er.textContent='⏳ กำลังทดสอบการเชื่อมต่อ...';
- const old={k:localStorage.getItem(GHK),s:localStorage.getItem(GHS),d:localStorage.getItem(GHD)};
- try{localStorage.setItem(GHK,JSON.stringify(c));const rem=await ghPull();
-  localStorage.setItem(GHD,'1');
-  if(rem.data){
-   if(confirm('พบข้อมูลบน GitHub อยู่แล้ว\n\nตกลง = ใช้ข้อมูลจาก GitHub แทนข้อมูลในเครื่องนี้ (แนะนำสำหรับเครื่องใหม่)\nยกเลิก = รวมข้อมูลในเครื่องนี้เข้ากับ GitHub')){db=rem.data;db._h=null;normDb();stamp();persist();localStorage.removeItem(GHD)}}
-  localStorage.setItem(GHS,JSON.stringify({sha:rem.sha,etag:null}));
+ const old={k:localStorage.getItem(GSK),s:localStorage.getItem(GSS)};
+ try{localStorage.setItem(GSK,JSON.stringify({url,key}));localStorage.removeItem(GSS);
+  const w=await gsCall({action:'whoami'});localStorage.setItem(GSS,JSON.stringify({cursor:0,role:w.role,cgId:w.cgId}));
+  if(w.role==='admin'&&(db.patients.length||db.cgs.length)&&confirm('ส่งข้อมูลที่มีอยู่ในเครื่องนี้ขึ้น Google Sheet ด้วยหรือไม่?\n\nตกลง = ส่งขึ้นทั้งหมด (ทำครั้งแรกครั้งเดียว)\nยกเลิก = ไม่ส่ง (ดึงข้อมูลจาก Google Sheet อย่างเดียว)'))markAllDirty();
   const e=await syncNow(true);if(e)throw new Error(e);
-  closeM();if($('#login').style.display!=='none')fillCgLogin();else{refreshView(true)}
-  alert('เชื่อมต่อ GitHub สำเร็จ ข้อมูลจะซิงค์ทุกเครื่องอัตโนมัติ');if($('#app').style.display!=='none'&&curPage==='set')rSet()
- }catch(e){er.style.color='#dc2626';er.textContent='เชื่อมต่อไม่สำเร็จ: '+ghErr(e);
-  ['GHK','GHS','GHD'].forEach((n,i)=>{const k=[GHK,GHS,GHD][i],v=[old.k,old.s,old.d][i];v===null?localStorage.removeItem(k):localStorage.setItem(k,v)})}}
-function ghCard(){const c=ghCfg(),on=ghReady();
- return `<div class="card"><h3>☁️ ซิงค์ข้อมูลกับ GitHub (ใช้ข้อมูลร่วมกันทุกเครื่อง)</h3>
- <p class="mut">${on?`เชื่อมต่อแล้ว: <b>${esc(c.owner)}/${esc(c.repo)}</b> · ไฟล์ <b>${esc(c.path)}</b> · branch ${esc(c.branch)}<br>เมื่อมีการบันทึก ระบบส่งขึ้น GitHub อัตโนมัติ และเครื่องอื่นจะดึงข้อมูลใหม่ทุกประมาณ 45 วินาที`:'ยังไม่ได้เชื่อมต่อ — กด "เชื่อมต่อ GitHub" แล้วกรอกข้อมูล Repository และ Token'}</p>
- <p class="err">⚠️ ใช้ Repository แบบ Private เท่านั้น และอย่าแชร์ Token ให้บุคคลที่ไม่ได้รับอนุญาต</p>
- <div class="toolbar"><button onclick="ghModal()">⚙️ ${on?'แก้ไขการเชื่อมต่อ':'เชื่อมต่อ GitHub'}</button>${on?`<button class="sec" onclick="ghManual()">🔄 ซิงค์ตอนนี้</button><button class="sec" onclick="ghForceUi()">⬆️ ส่งข้อมูลเครื่องนี้ทับ GitHub</button><button class="del" onclick="ghOff()">ยกเลิกการเชื่อมต่อ</button>`:''}</div></div>`}
-async function ghManual(){const e=await syncNow(true);alert(e||'ซิงค์เรียบร้อย')}
-async function ghForceUi(){if(!confirm('ข้อมูลบน GitHub (และทุกเครื่อง) จะถูกแทนที่ด้วยข้อมูลของเครื่องนี้ ยืนยัน?'))return;const e=await ghForcePush();alert(e||'ส่งข้อมูลเรียบร้อย')}
-function ghOff(){if(!confirm('ยกเลิกการเชื่อมต่อ GitHub บนเครื่องนี้? (ข้อมูลในเครื่องยังอยู่)'))return;[GHK,GHS,GHD].forEach(k=>localStorage.removeItem(k));setStatus('');rSet()}
-setInterval(()=>{if(!document.hidden)syncNow()},45000);
+  closeM();if($('#login').style.display!=='none')fillCgLogin();else refreshView(true);
+  alert('เชื่อมต่อสำเร็จ ('+(w.role==='admin'?'ผู้ดูแลระบบ':'CG: '+w.name)+')');if($('#app').style.display!=='none'&&curPage==='set')rSet()
+ }catch(e){er.style.color='#dc2626';er.textContent='เชื่อมต่อไม่สำเร็จ: '+gsErr(e);
+  old.k===null?localStorage.removeItem(GSK):localStorage.setItem(GSK,old.k);old.s===null?localStorage.removeItem(GSS):localStorage.setItem(GSS,old.s)}}
+function gsCard(){const c=gsCfg(),st=gsState(),on=!!c;
+ return `<div class="card"><h3>☁️ ซิงค์ข้อมูลกับ Google Sheet</h3>
+ <p class="mut">${on?`เชื่อมต่อแล้ว · สิทธิ์: <b>${st.role==='admin'?'ผู้ดูแลระบบ':st.role==='cg'?'CG':'-'}</b><br>เมื่อมีการบันทึก ระบบส่งขึ้น Google Sheet อัตโนมัติ และดึงข้อมูลใหม่ของเครื่องอื่นทุกประมาณ 90 วินาที<br>รูปถ่ายการเยี่ยมเก็บในเครื่องที่ถ่ายเท่านั้น (ใน Sheet เก็บเฉพาะจำนวนรูป)`:'ยังไม่ได้เชื่อมต่อ กด "เชื่อมต่อ Google Sheet" แล้วกรอก URL และรหัส (Key)'}</p>
+ <div class="toolbar"><button onclick="gsModal()">⚙️ ${on?'แก้ไขการเชื่อมต่อ':'เชื่อมต่อ Google Sheet'}</button>${on?`<button class="sec" onclick="gsManual()">🔄 ซิงค์ตอนนี้</button>${st.role==='admin'?`<button class="sec" onclick="gsKeys()">🔑 ดูรหัสของ CG</button><button class="sec" onclick="gsPushAllUi()">⬆️ ส่งข้อมูลเครื่องนี้ขึ้นทั้งหมด</button>`:''}<button class="del" onclick="gsOff()">ยกเลิกการเชื่อมต่อ</button>`:''}</div></div>`}
+async function gsManual(){const e=await syncNow(true);alert(e||'ซิงค์เรียบร้อย')}
+async function gsPushAllUi(){if(!confirm('ส่งข้อมูลทั้งหมดในเครื่องนี้ขึ้น Google Sheet (รายการที่ใหม่กว่าใน Sheet จะไม่ถูกทับ) ยืนยัน?'))return;const e=await gsPushAll();alert(e||'ส่งข้อมูลเรียบร้อย')}
+async function gsKeys(){try{const r=await gsCall({action:'keys'});modal(`<h3>🔑 รหัสเข้าใช้ของ CG</h3><p class="mut" style="font-size:13px">แจ้งรหัสให้ CG แต่ละคนเป็นการส่วนตัว (แก้หรือเปลี่ยนรหัสได้ที่คอลัมน์ "รหัสเข้าใช้" ในแท็บ CG ของ Google Sheet)</p><div class="tw"><table><tr><th>ชื่อ CG</th><th>รหัส (Key)</th></tr>${r.keys.map(k=>`<tr><td>${esc(k.name)}</td><td><b style="font-family:monospace;font-size:16px">${esc(k.key)}</b></td></tr>`).join('')||'<tr><td colspan="2" class="mut">ยังไม่มี CG ใน Google Sheet</td></tr>'}</table></div><br><button onclick="closeM()">ปิด</button>`)}catch(e){alert(gsErr(e))}}
+function gsOff(){if(!confirm('ยกเลิกการเชื่อมต่อ Google Sheet บนเครื่องนี้? (ข้อมูลในเครื่องยังอยู่)'))return;localStorage.removeItem(GSK);localStorage.removeItem(GSS);setStatus('');rSet()}
+setInterval(()=>{if(!document.hidden)syncNow()},90000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncNow()});
 window.addEventListener('online',()=>syncNow());
 
@@ -370,7 +359,7 @@ function doLogin(e){
 function logout(){sessionStorage.removeItem('scg_user');location.reload()}
 function start(){const s=sessionStorage.getItem('scg_user');if(!s)return;try{currentUser=JSON.parse(s)}catch(e){return logout()}
  $('#login').style.display='none';$('#app').style.display='flex';load();$('#userRoleBadge').textContent=currentUser.name;if(currentUser.role==='cg')state.cg=currentUser.cgId;go('dash')}
-window.onload=async()=>{load();if(ghReady())await Promise.race([syncNow(),new Promise(r=>setTimeout(r,8000))]);fillCgLogin();if(sessionStorage.getItem('scg_user'))start()};
+window.onload=async()=>{load();if(gsReady())await Promise.race([syncNow(),new Promise(r=>setTimeout(r,8000))]);fillCgLogin();if(sessionStorage.getItem('scg_user'))start()};
 
 const PAGES={
  dash:['🏠 แดชบอร์ด',()=>rDash(),['admin','cg']],
@@ -621,8 +610,8 @@ function genSch(){const key=mkey(state.y,state.m);if(db.schedules[key]&&!confirm
     if(best!==null){got.push(best);ld[best]++}}
    sch.visits[p.id]=got.sort((a,b)=>a-b)})});
  db.schedules[key]=sch;save();rSch()}
-function tg(pid,d){if(currentUser.role==='cg'&&P(pid).cgId!==currentUser.cgId)return;const s=db.schedules[mkey(state.y,state.m)];if(!s)return;const a=s.visits[pid]||(s.visits[pid]=[]),i=a.indexOf(d);i>=0?a.splice(i,1):(a.push(d),a.sort((x,y)=>x-y));save();rSch()}
-function tgDuty(cg,d){if(currentUser.role==='cg'&&cg!==currentUser.cgId)return;const s=db.schedules[mkey(state.y,state.m)];if(!s)return;s.duty[cg]=s.duty[cg]===d?null:d;save();rSch()}
+function tg(pid,d){if(currentUser.role==='cg')return;const s=db.schedules[mkey(state.y,state.m)];if(!s)return;const a=s.visits[pid]||(s.visits[pid]=[]),i=a.indexOf(d);i>=0?a.splice(i,1):(a.push(d),a.sort((x,y)=>x-y));save();rSch()}
+function tgDuty(cg,d){if(currentUser.role==='cg')return;const s=db.schedules[mkey(state.y,state.m)];if(!s)return;s.duty[cg]=s.duty[cg]===d?null:d;save();rSch()}
 function delSch(){if(confirm('ลบตารางเดือนนี้?')){delete db.schedules[mkey(state.y,state.m)];save();rSch()}}
 function rSch(){const y=state.y,m=state.m,key=mkey(y,m),sch=db.schedules[key],nd=new Date(y,m,0).getDate(),wd=new Set(workDays(y,m)),S=db.settings,isA=currentUser.role==='admin';
  const done=new Set(db.visits.filter(v=>v.date.startsWith(key)).map(v=>v.pid+'|'+(+v.date.slice(8))));
@@ -783,18 +772,18 @@ function rSet(){const S=db.settings;
  <label>ชม. เวรประจำศูนย์<input type="number" id="s2" value="${S.dutyHrs}" step="0.5" min="0"></label>
  <label>นับเสาร์-อาทิตย์เป็นวันทำงาน<select id="s3"><option value="0">ไม่นับ</option><option value="1" ${S.weekend?'selected':''}>นับ</option></select></label>
  <label class="full">วันหยุดนักขัตฤกษ์ (บรรทัดละ 1 วัน เช่น 2569-04-13)<textarea id="s4" rows="4">${esc(S.holidays)}</textarea></label></div><br><button onclick="saveSet()">💾 บันทึก</button></div>
- ${ghCard()}<div class="card"><h3>สำรอง/กู้คืนข้อมูล</h3><p class="mut">ข้อมูลเก็บในเบราว์เซอร์ของเครื่องนี้ ควรสำรองเป็นประจำ</p><div class="toolbar">
+ ${gsCard()}<div class="card"><h3>สำรอง/กู้คืนข้อมูล</h3><p class="mut">ข้อมูลเก็บในเบราว์เซอร์ของเครื่องนี้ ควรสำรองเป็นประจำ</p><div class="toolbar">
  <button onclick="dl('smartcg_backup_'+todayISO()+'.json',JSON.stringify(db),'application/json')">⬇️ สำรองข้อมูล (JSON)</button>
  <label class="btnlike">⬆️ กู้คืนจากไฟล์<input type="file" accept=".json" hidden onchange="restore(this)"></label>
  <button class="sec" onclick="csvPat()">⬇️ รายชื่อผู้ป่วย (CSV)</button>
  <button class="del" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button></div></div>
  <div class="card">ผู้ป่วย ${db.patients.length} • CG ${db.cgs.length} • ADL ${db.adl.length} • TAI ${db.tai.length} • เยี่ยมบ้าน ${db.visits.length} รายการ</div>`)}
 function saveSet(){Object.assign(db.settings,{orgName:$('#s0').value.trim(),visitHrs:+$('#s1').value||0,dutyHrs:+$('#s2').value||0,weekend:$('#s3').value==='1',holidays:$('#s4').value});save();alert('บันทึกการตั้งค่าแล้ว')}
-function restore(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.patients||!d.cgs)throw 0;if(!confirm('ข้อมูลปัจจุบันจะถูกแทนที่ ยืนยัน?'))return;db=d;db._h=null;normDb();save();load();alert('กู้คืนสำเร็จ');(async()=>{if(ghReady()&&confirm('ส่งข้อมูลที่กู้คืนไปทับบน GitHub ให้ทุกเครื่องด้วยหรือไม่?'))await ghForcePush();go('dash')})()}catch(e){alert('ไฟล์ไม่ถูกต้อง')}};r.readAsText(f)}
+function restore(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.patients||!d.cgs)throw 0;if(!confirm('ข้อมูลปัจจุบันจะถูกแทนที่ ยืนยัน?'))return;db=d;db._h=null;normDb();save();load();alert('กู้คืนสำเร็จ');(async()=>{if(gsReady()&&confirm('ส่งข้อมูลที่กู้คืนขึ้น Google Sheet ด้วยหรือไม่?'))await gsPushAll();go('dash')})()}catch(e){alert('ไฟล์ไม่ถูกต้อง')}};r.readAsText(f)}
 function csvPat(){const rows=[['ชื่อ-สกุล','เลขบัตรประชาชน','วันเกิด','อายุ','เพศ','หมู่','ที่อยู่','Latitude','Longitude','เบอร์โทร','โรคประจำตัว','ADL','TAI','กลุ่ม','CG','ญาติ','เบอร์ญาติ','สถานะ']];
  db.patients.forEach(p=>rows.push([p.name,p.cid?"'"+p.cid:'',p.birth?thDate(p.birth):'',age(p.birth),p.sex,p.moo,p.address,p.lat,p.lng,p.phone,p.disease,p.adl,p.tai,p.group,cgName(p.cgId),p.relative,p.relPhone,p.status==='inactive'?'จำหน่าย':'อยู่ในความดูแล']));
  dl(`รายชื่อผู้สูงอายุ_${todayISO()}.csv`,toCSV(rows),'text/csv;charset=utf-8')}
-function resetAll(){if(prompt('พิมพ์ RESET เพื่อยืนยันล้างข้อมูลทั้งหมด')!=='RESET')return;localStorage.removeItem(KEY);load();alert('รีเซ็ตเรียบร้อย');(async()=>{if(ghReady()&&confirm('ล้างข้อมูลบน GitHub (ทุกเครื่อง) ด้วยหรือไม่?\nยกเลิก = ล้างเฉพาะเครื่องนี้ (ไม่แนะนำ)'))await ghForcePush();go('dash')})()}
+function resetAll(){if(prompt('พิมพ์ RESET เพื่อยืนยันล้างข้อมูลทั้งหมด')!=='RESET')return;localStorage.removeItem(KEY);localStorage.removeItem(GSS);load();alert('รีเซ็ตเรียบร้อย (ล้างเฉพาะเครื่องนี้ ข้อมูลใน Google Sheet ยังอยู่ และจะถูกดึงกลับมาเมื่อซิงค์)');go('dash');syncNow(true)}
 </script>
 </body>
 </html>
