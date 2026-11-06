@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart CG - ระบบเยี่ยมบ้านผู้สูงอายุ</title>
+<title>ระบบเยี่ยมบ้านผู้ป่วย LTC</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -104,6 +104,18 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 .chip{background:#faf6f1;border:1px solid #ece7e1;border-radius:12px;padding:8px 14px;font-size:13px}
 .chip b{font-size:18px;margin-left:4px;color:#5c4030}
 
+/* ===== LOGIN ===== */
+#login{background:linear-gradient(145deg,#3b2a1f 0%,#7d5a40 55%,#d9b48a 100%);overflow-y:auto;align-items:flex-start}
+.lwrap{width:100%;max-width:400px;margin:auto;display:flex;flex-direction:column;align-items:center;gap:18px;padding:12px 0}
+.lbrand{text-align:center;color:#fff}
+.llogo{width:76px;height:76px;margin:0 auto 12px;border-radius:22px;background:#ffffff26;border:1px solid #ffffff40;display:grid;place-items:center;font-size:38px;box-shadow:0 10px 30px #0004}
+.lbrand h1{margin:0;font-size:26px;font-weight:700;color:#fff}.lbrand p{margin:6px 0 0;font-size:13px;opacity:.85}
+.lbox{max-width:400px;border-radius:20px;padding:24px}
+.lorg{background:#faf6f1;border:1px solid #ece7e1;border-radius:12px;padding:10px 12px;margin-bottom:6px;text-align:center;font-size:14px;color:#5c4030}.lorg b{display:block;font-size:15px}.lorg small{color:#8b6447}
+.lbox button{background:#8b6447}.lbox button:hover{background:#74513a}
+.lbox input:focus,.lbox select:focus{outline:2px solid #d4a373;border-color:#d4a373}
+.lfoot{text-align:center;color:#fff;font-size:13px;line-height:1.7;padding:4px 10px;text-shadow:0 1px 3px #0004}
+.lfoot:before{content:"";display:block;width:60px;height:2px;background:#ffffff77;border-radius:2px;margin:0 auto 12px}
 /* ===== MAP / HISTORY / DETAIL ===== */
 .mtabs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#f1ece6;border-radius:14px;padding:6px;margin:16px 0}
 .mtab{background:transparent;color:#5c4030;border-radius:10px;padding:9px 14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;width:auto}
@@ -167,8 +179,10 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 </style>
 </head>
 <body>
-<div id="login"><form class="lbox" onsubmit="doLogin(event)">
-<h1>Smart CG</h1><p class="mut">ระบบดูแลผู้สูงอายุและผู้มีภาวะพึ่งพิง<br>อบต.ชมเจริญ อ.ปากชม จ.เลย</p>
+<div id="login"><div class="lwrap">
+<div class="lbrand"><div class="llogo">🏡</div><h1>ระบบเยี่ยมบ้านผู้ป่วย LTC</h1><p>Long Term Care · ระบบดูแลผู้สูงอายุและผู้มีภาวะพึ่งพิง</p></div>
+<form class="lbox" onsubmit="doLogin(event)">
+<div class="lorg" id="lorg"></div>
 <label>ประเภทผู้ใช้งาน
 <select id="lrole" onchange="toggleCgSel(this.value)">
 <option value="admin">ผู้ดูแลระบบ (Admin)</option>
@@ -177,11 +191,13 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 <div id="cgSelBox" style="display:none"><label>เลือกชื่อ CG ของท่าน<select id="lcgId"></select></label></div>
 <label>ชื่อผู้ใช้<input id="lu" autocomplete="username" required placeholder="กรอกชื่อผู้ใช้"></label>
 <label>รหัสผ่าน<input id="lp" type="password" autocomplete="current-password" required placeholder="กรอกรหัสผ่าน"></label>
-<div id="lerr" class="err"></div><button style="width:100%;margin-top:14px">เข้าสู่ระบบ</button><div style="text-align:center;margin-top:12px"><a href="#" onclick="gsModal();return false" style="font-size:13px;color:var(--p)">☁️ เชื่อมต่อ Google Sheet (สำหรับเครื่องใหม่)</a></div></form></div>
+<div id="lerr" class="err"></div><button style="width:100%;margin-top:14px">เข้าสู่ระบบ</button><div style="text-align:center;margin-top:12px"><a href="#" onclick="gsModal();return false" style="font-size:13px;color:var(--br)">☁️ เชื่อมต่อ Google Sheet (สำหรับเครื่องใหม่)</a></div></form>
+<div class="lfoot">พัฒนาโดย <b>นายเอกพล อาจโยธา</b> ผอ.รพ.สต.บ้านห้วยอาลัย</div>
+</div></div>
 
 <div id="app">
   <nav class="side" id="sideNav">
-    <div class="brand">Smart CG<small id="userRoleBadge">ศูนย์พัฒนาคุณภาพชีวิตฯ อบต.ชมเจริญ</small></div>
+    <div class="brand">ระบบเยี่ยมบ้านผู้ป่วย LTC<small id="userRoleBadge">ระบบดูแลผู้สูงอายุที่บ้าน</small></div>
     <div id="nav"></div>
   </nav>
   <main class="main" id="main"></main>
@@ -249,12 +265,12 @@ const toCSV=rows=>'\ufeff'+rows.map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'
 function initial(n){const s=String(n||'').replace(/^(นางสาว|นาง|นาย|น\.ส\.|ด\.ช\.|ด\.ญ\.)\s*/,'');const m=s.match(/[ก-ฮA-Za-z]/);return m?m[0]:'?'}
 function vHrs(v){if(v.mins)return (+v.mins)/60;if(v.tStart&&v.tEnd){const [a,b]=v.tStart.split(':').map(Number),[c,d]=v.tEnd.split(':').map(Number);const h=(c*60+d-a*60-b)/60;if(h>0)return h}return +db.settings.visitHrs||2}
 
-function seed(){const d={cgs:[],patients:[],adl:[],tai:[],visits:[],schedules:{},settings:{orgName:'ศูนย์พัฒนาคุณภาพชีวิตผู้สูงอายุฯ อบต.ชมเจริญ',visitHrs:2,dutyHrs:8,weekend:false,holidays:''}};
+function seed(){const d={cgs:[],patients:[],adl:[],tai:[],visits:[],schedules:{},settings:{orgName:'โรงพยาบาลส่งเสริมสุขภาพตำบล',orgSub:'',defAddr:'',visitHrs:2,dutyHrs:8,weekend:false,holidays:''}};
  SEED.forEach(([cg,ps])=>{const c={id:uid(),name:cg,cid:'',phone:'',area:'',note:''};d.cgs.push(c);const moos=new Set();
-  ps.split(';').forEach(s=>{const [n,m,g,a]=s.split(',');moos.add(m);d.patients.push({id:uid(),name:n.trim(),cid:'',birth:'',sex:guessSex(n.trim()),moo:m,address:'ต.ชมเจริญ อ.ปากชม จ.เลย',lat:'',lng:'',phone:'',disease:'',adl:+a,tai:'',group:+g,cgId:c.id,relative:'',relPhone:'',status:'active'})});
+  ps.split(';').forEach(s=>{const [n,m,g,a]=s.split(',');moos.add(m);d.patients.push({id:uid(),name:n.trim(),cid:'',birth:'',sex:guessSex(n.trim()),moo:m,address:'',lat:'',lng:'',phone:'',disease:'',adl:+a,tai:'',group:+g,cgId:c.id,relative:'',relPhone:'',status:'active'})});
   c.area='หมู่ '+[...moos].join(', ')});return d}
 function save(){stamp();try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){alert('หน่วยความจำเต็ม กรุณาลบบันทึกเก่าบางส่วน');return false}if(gsReady())syncSoon();return true}
-function load(){try{db=JSON.parse(localStorage.getItem(KEY))}catch(e){db=null}if(!db||!db.patients||!db.cgs||!db.cgs.length){db=seed();save()}db.settings=Object.assign({orgName:'ศูนย์พัฒนาคุณภาพชีวิตผู้สูงอายุฯ อบต.ชมเจริญ',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});['adl','tai','visits'].forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{}}
+function load(){try{db=JSON.parse(localStorage.getItem(KEY))}catch(e){db=null}if(!db||!db.patients||!db.cgs){db=seed();save()}db.settings=Object.assign({orgName:'โรงพยาบาลส่งเสริมสุขภาพตำบล',orgSub:'',defAddr:'',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});['adl','tai','visits'].forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{}}
 
 /* ---------- GOOGLE SHEET SYNC ---------- */
 var curPage='dash',gsBusy=false,gsAgain=false,gsTimer=null,gsStatus='';
@@ -268,7 +284,7 @@ function gsReady(){return !!gsCfg()}
 function gsErr(e){return e&&(e.name==='AbortError'||e instanceof TypeError)?'เชื่อมต่อ Google Sheet ไม่ได้ (ออฟไลน์?) ข้อมูลยังเก็บในเครื่อง จะส่งให้เมื่อออนไลน์':(e&&e.message)||String(e)}
 function setStatus(t,col){gsStatus=t;const e=$('#syncSt');if(e){e.textContent=t;e.style.color=col||''}}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
-function normDb(){db.settings=Object.assign({orgName:'ศูนย์พัฒนาคุณภาพชีวิตผู้สูงอายุฯ อบต.ชมเจริญ',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});COLS.forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{};db._d=db._d||{}}
+function normDb(){db.settings=Object.assign({orgName:'โรงพยาบาลส่งเสริมสุขภาพตำบล',orgSub:'',defAddr:'',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});COLS.forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{};db._d=db._d||{}}
 
 /* ติดตามรายการที่ถูกเพิ่ม/แก้/ลบ เพื่อส่งขึ้น Google Sheet */
 function hsh(o){const s=JSON.stringify(o,(k,v)=>k==='_u'?undefined:v);let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return h+':'+s.length}
@@ -372,36 +388,35 @@ setInterval(()=>{if(!document.hidden)syncNow()},90000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncNow()});
 window.addEventListener('online',()=>syncNow());
 
+function credCard(){const S=db.settings;return `<div class="card"><h3>🔐 ผู้ใช้งานและรหัสผ่านเข้าระบบ</h3><p class="mut" style="margin-top:0">${!S.adminPw?'<b style="color:#dc2626">⚠️ ขณะนี้ผู้ดูแลระบบยังใช้รหัสผ่านเริ่มต้น (admin / admin) กรุณาเปลี่ยน</b><br>':''}${!S.cgPw?'CG ยังใช้รหัสเริ่มต้น (cg / cg) ':''}รหัสผ่านจะถูกเก็บแบบเข้ารหัส (SHA-256) เว้นช่องรหัสผ่านไว้ = ไม่เปลี่ยน</p><div class="form"><label>ชื่อผู้ใช้ผู้ดูแลระบบ<input id="c1" value="${esc(S.adminUser||'admin')}"></label><label>รหัสผ่านใหม่ของผู้ดูแลระบบ<input id="c2" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label><label>ชื่อผู้ใช้สำหรับ CG (ใช้ร่วมกันทุกคน)<input id="c3" value="${esc(S.cgUser||'cg')}"></label><label>รหัสผ่านใหม่ของ CG<input id="c4" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label></div><br><button onclick="saveCred()">💾 บันทึกรหัสผ่าน</button></div>`}
+function saveCred(){const S=db.settings,au=$('#c1').value.trim(),cu=$('#c3').value.trim(),ap=$('#c2').value,cp=$('#c4').value;
+ if(!au||!cu)return alert('กรุณากรอกชื่อผู้ใช้ทั้งสองช่อง');if((ap&&ap.length<6)||(cp&&cp.length<6))return alert('รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร');
+ S.salt=S.salt||uid();S.adminUser=au;S.cgUser=cu;if(ap)S.adminPw=hashPw(S.salt,ap);if(cp)S.cgPw=hashPw(S.salt,cp);
+save();alert('บันทึกแล้ว');rSet()}
+function onboard(){if(currentUser.role!=='admin'||db.cgs.length||db.patients.length)return '';return `<div class="card" style="border-left:5px solid #8b6447"><h3>👋 ยินดีต้อนรับสู่ระบบเยี่ยมบ้านผู้ป่วย LTC</h3><p style="margin-top:0">เริ่มต้นใช้งานสำหรับ รพ.สต. ของท่านตามลำดับนี้</p><ol style="line-height:2.2;padding-left:20px"><li>ตั้งชื่อ รพ.สต. พื้นที่ และพิกัดหน่วยบริการ <button class="sm" onclick="go('set')">ไปที่ตั้งค่า</button></li><li>เปลี่ยนรหัสผ่านเข้าระบบ <button class="sm sec" onclick="go('set')">ไปที่ตั้งค่า</button></li><li>เพิ่มรายชื่อ CG <button class="sm" onclick="go('cgs')">ผู้ดูแล (CG)</button></li><li>เพิ่มผู้สูงอายุ/ผู้ป่วย แล้วมอบหมายให้ CG <button class="sm" onclick="go('patients')">ทะเบียนผู้ป่วย</button></li><li>ให้ CG ใช้งานจากมือถือ: ตั้งค่า &gt; เชื่อมต่อ Google Sheet ของ รพ.สต. ตนเอง</li></ol></div>`}
 /* ---------- LOGIN ---------- */
-function fillCgLogin(){load();const sel=$('#lcgId');if(sel)sel.innerHTML=db.cgs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+function fillCgLogin(){load();fillLoginBrand();const sel=$('#lcgId');if(sel)sel.innerHTML=db.cgs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
 function toggleCgSel(val){$('#cgSelBox').style.display=val==='cg'?'block':'none';if(val==='cg'){fillCgLogin()}}
+function sha256(str){const u=new TextEncoder().encode(str),l=u.length,n=((l+9+63)>>6)<<6,w=new Uint8Array(n);w.set(u);w[l]=0x80;const dv=new DataView(w.buffer);dv.setUint32(n-4,(l*8)>>>0);dv.setUint32(n-8,Math.floor(l*8/4294967296));
+ const pr=[];for(let c=2;pr.length<64;c++){let ok=true;for(let d=2;d*d<=c;d++)if(c%d===0){ok=false;break}if(ok)pr.push(c)}
+ const fr=x=>Math.floor((x-Math.floor(x))*4294967296),K=pr.map(p=>fr(Math.cbrt(p)));let H=pr.slice(0,8).map(p=>fr(Math.sqrt(p)));
+ for(let i=0;i<n;i+=64){const W=new Array(64);for(let t=0;t<16;t++)W[t]=dv.getUint32(i+t*4);
+  for(let t=16;t<64;t++){const a=W[t-15],c=W[t-2];W[t]=(W[t-16]+(((a>>>7)|(a<<25))^((a>>>18)|(a<<14))^(a>>>3))+W[t-7]+(((c>>>17)|(c<<15))^((c>>>19)|(c<<13))^(c>>>10)))|0}
+  let [a,b,c,d,e,f,g,h]=H;
+  for(let t=0;t<64;t++){const T1=(h+(((e>>>6)|(e<<26))^((e>>>11)|(e<<21))^((e>>>25)|(e<<7)))+((e&f)^(~e&g))+K[t]+W[t])|0,T2=((((a>>>2)|(a<<30))^((a>>>13)|(a<<19))^((a>>>22)|(a<<10)))+((a&b)^(a&c)^(b&c)))|0;h=g;g=f;f=e;e=(d+T1)|0;d=c;c=b;b=a;a=(T1+T2)|0}
+  H=[H[0]+a|0,H[1]+b|0,H[2]+c|0,H[3]+d|0,H[4]+e|0,H[5]+f|0,H[6]+g|0,H[7]+h|0]}
+ return H.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('')}
+const hashPw=(salt,pw)=>sha256((salt||'')+':'+pw);
+function credOk(role,u,p){const S=db.settings,k=role==='admin'?'admin':'cg',user=S[k+'User']||k,pw=S[k+'Pw'];if(u!==user)return false;return pw?hashPw(S.salt,p)===pw:p===k}
+function fillLoginBrand(){const S=db.settings,e=$('#lorg');if(!e)return;e.innerHTML=`🏥 <b>${esc(S.orgName||'')}</b>${S.orgSub?`<small>${esc(S.orgSub)}</small>`:''}`}
 function doLogin(e){
- e.preventDefault();
- load();
- const role=$('#lrole').value,u=$('#lu').value.trim(),p=$('#lp').value;
- $('#lerr').textContent='';
- 
- if(role==='admin'){
-  if(u==='hos14463'&&p==='hos14463'){
-   currentUser={role:'admin',cgId:null,name:'ผู้ดูแลระบบ (Admin)'};
-   sessionStorage.setItem('scg_user',JSON.stringify(currentUser));
-   start();
-  }else{
-   $('#lerr').textContent='ชื่อผู้ใช้หรือรหัสผ่าน Admin ไม่ถูกต้อง';
-  }
- }else{
-  if(u==='14463'&&p==='14463'){
-   const cgId=$('#lcgId').value;
-   if(!cgId)return $('#lerr').textContent='กรุณาเลือกชื่อ CG';
-   const c=db.cgs.find(x=>x.id===cgId);
-   currentUser={role:'cg',cgId:cgId,name:c?c.name:'CG'};
-   sessionStorage.setItem('scg_user',JSON.stringify(currentUser));
-   start();
-  }else{
-   $('#lerr').textContent='ชื่อผู้ใช้หรือรหัสผ่าน CG ไม่ถูกต้อง';
-  }
- }
-}
+ e.preventDefault();load();
+ const role=$('#lrole').value,u=$('#lu').value.trim(),p=$('#lp').value;$('#lerr').textContent='';
+ if(!credOk(role,u,p))return $('#lerr').textContent=role==='admin'?'ชื่อผู้ใช้หรือรหัสผ่านผู้ดูแลระบบไม่ถูกต้อง':'ชื่อผู้ใช้หรือรหัสผ่าน CG ไม่ถูกต้อง';
+ if(role==='admin')currentUser={role:'admin',cgId:null,name:'ผู้ดูแลระบบ (Admin)'};
+ else{const cgId=$('#lcgId').value;if(!cgId)return $('#lerr').textContent='กรุณาเลือกชื่อ CG';const c=db.cgs.find(x=>x.id===cgId);currentUser={role:'cg',cgId:cgId,name:c?c.name:'CG'}}
+ sessionStorage.setItem('scg_user',JSON.stringify(currentUser));start();
+ if(role==='admin'&&!db.settings.adminPw)setTimeout(()=>alert('⚠️ ขณะนี้ใช้รหัสผ่านเริ่มต้น (admin / admin)\nกรุณาไปที่ ตั้งค่าระบบ > ผู้ใช้งานและรหัสผ่าน เพื่อเปลี่ยนก่อนใช้งานจริง'),500)}
 function logout(){sessionStorage.removeItem('scg_user');location.reload()}
 function start(){const s=sessionStorage.getItem('scg_user');if(!s)return;try{currentUser=JSON.parse(s)}catch(e){return logout()}
  $('#login').style.display='none';$('#app').style.display='flex';load();$('#userRoleBadge').textContent=currentUser.name;if(currentUser.role==='cg')state.cg=currentUser.cgId;go('dash')}
@@ -458,7 +473,7 @@ function rDash(){
  if(sch)Object.entries(sch.visits).forEach(([pid,ds])=>{const p=P(pid);if(p&&p.status!=='inactive'&&(!isCG||p.cgId===currentUser.cgId)&&ds.includes(td))today.push(p)});
  const duty=sch?cgs.filter(c=>sch.duty[c.id]===td):[];
 
- M(`<div class="dhero"><div class="ic">👥</div><div><h1>แดชบอร์ด Caregiver</h1><p>การเยี่ยมราย Caregiver เดือน${thMonth(key)} · ย้อนหลัง 12 เดือน</p></div>
+ M(`${onboard()}<div class="dhero"><div class="ic">👥</div><div><h1>แดชบอร์ด Caregiver</h1><p>การเยี่ยมราย Caregiver เดือน${thMonth(key)} · ย้อนหลัง 12 เดือน</p></div>
  <select onchange="state.dm=this.value;rDash()">${monthOpts(key)}</select></div>
 
  <div class="kpis">
@@ -532,7 +547,7 @@ function rMap(){
  <div class="pbody">${list.map(p=>{const c=CAT[catOf(p)],m=miss(p),lv=lastVisitOf(p.id);return `<div class="pi ${m?'miss':''}" onclick="mapFocus('${p.id}')"><div class="pic" style="background:${c.c}">${c.i}</div><div><b>${esc(p.name)}</b><small>ม.${esc(p.moo)} · ${m?`<span class="red">ขาดเยี่ยม ${m} ครั้ง</span>`:lv?`เยี่ยมล่าสุด ${daysAgo(lv.date)} วันที่แล้ว`:'ยังไม่เคยเยี่ยม'}${p.lat&&p.lng?'':' · <span class="mut">ไม่มีพิกัด</span>'}</small></div></div>`}).join('')||'<p class="mut" style="padding:16px">ไม่พบรายการ</p>'}</div></div></div>`);
  setTimeout(()=>{const el=$('#leafletMap');if(!el)return;
   if(typeof L==='undefined'){el.innerHTML='<p style="padding:20px" class="mut">โหลดแผนที่ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ต</p>';return}
-  _lm=L.map(el).setView([17.88,101.95],13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(_lm);
+  const S0=db.settings,c0=(S0.orgLat&&S0.orgLng&&!isNaN(+S0.orgLat)&&!isNaN(+S0.orgLng))?[+S0.orgLat,+S0.orgLng]:[13.75,100.5];_lm=L.map(el).setView(c0,13);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(_lm);
   const bounds=[];
   list.forEach(p=>{if(!(p.lat&&p.lng)||isNaN(+p.lat)||isNaN(+p.lng))return;const lat=+p.lat,lng=+p.lng,c=CAT[catOf(p)],m=miss(p);bounds.push([lat,lng]);
    const icon=L.divIcon({html:`<div class="pin ${m?'miss':''}" style="background:${c.c}">${c.i}</div>`,className:'',iconSize:[36,36],iconAnchor:[18,18],popupAnchor:[0,-18]});
@@ -629,7 +644,7 @@ function rPat(){const q=state.q.toLowerCase(),base=currentUser.role==='cg'?db.pa
  <div class="tw"><table><tr><th>#</th><th>ชื่อ-สกุล</th><th>วันเกิด</th><th>อายุ</th><th>ที่อยู่ / พิกัด</th><th>โทร</th><th>โรคประจำตัว</th><th>ADL</th><th>TAI</th><th>กลุ่ม</th><th>CG</th><th class="noprint">จัดการ</th></tr>
  ${list.map((p,i)=>{const [c,cl]=adlCat(p.adl);return `<tr style="${p.status==='inactive'?'opacity:.5':''}"><td>${i+1}</td><td><b>${esc(p.name)}</b>${p.status==='inactive'?' <span class="badge b-gry">จำหน่าย</span>':''}</td><td style="white-space:nowrap">${p.birth?thDate(p.birth):'-'}</td><td>${age(p.birth)}</td><td>ม.${esc(p.moo)} ${p.lat&&p.lng?`<br><a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" class="badge b-blu" style="text-decoration:none">📍 นำทาง</a>`:''}</td><td>${esc(p.phone||'-')}</td><td>${esc(p.disease||'-')}</td><td style="white-space:nowrap">${p.adl??''} <span class="badge ${cl}">${c}</span></td><td>${esc(p.tai||'')}</td><td><b>${p.group}</b></td><td>${esc(cgName(p.cgId))}</td><td style="white-space:nowrap" class="noprint"><button class="sm" onclick="editPat('${p.id}')">แก้</button> <button class="sm sec" onclick="state.pre='${p.id}';go('adl')">ADL</button> <button class="sm sec" onclick="state.pre='${p.id}';go('tai')">TAI</button>${currentUser.role==='admin'?` <button class="sm del" onclick="delPat('${p.id}')">ลบ</button>`:''}</td></tr>`}).join('')}</table></div></div>`)}
 function rPatKeep(){rPat();const e=$('#pq');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length)}}
-function editPat(id){const isCG=currentUser.role==='cg';const p=id?P(id):{name:'',cid:'',birth:'',sex:'',moo:'',address:'ต.ชมเจริญ อ.ปากชม จ.เลย',lat:'',lng:'',phone:'',disease:'',adl:'',tai:'',group:1,cgId:currentUser.cgId||'',relative:'',relPhone:'',status:'active'};
+function editPat(id){const isCG=currentUser.role==='cg';const p=id?P(id):{name:'',cid:'',birth:'',sex:'',moo:'',address:(db.settings.defAddr||''),lat:'',lng:'',phone:'',disease:'',adl:'',tai:'',group:1,cgId:currentUser.cgId||'',relative:'',relPhone:'',status:'active'};
  modal(`<h3>${id?'แก้ไข':'เพิ่ม'}ข้อมูลผู้สูงอายุ / ผู้ป่วย</h3><form class="form" onsubmit="savePat(event,'${id||''}')">
  <label class="full">ชื่อ-สกุล (รวมคำนำหน้า) *<input name="name" required value="${esc(p.name)}"></label>
  <label>เลขบัตรประชาชน 13 หลัก<input name="cid" maxlength="13" inputmode="numeric" value="${esc(p.cid)}"></label>
@@ -888,21 +903,23 @@ function rReport(){const act=activeP(),tot=act.length,g=[0,1,2,3,4].map(i=>act.f
 
 /* ---------- SETTINGS ---------- */
 function rSet(){const S=db.settings;
- M(`<h2>⚙️ ตั้งค่าระบบ</h2><div class="card"><h3>ตั้งค่าหน่วยงานและเงื่อนไข</h3><div class="form">
- <label class="full">ชื่อสถานบริการ / หน่วยงาน<input id="s0" value="${esc(S.orgName||'')}"></label>
+ M(`<h2>⚙️ ตั้งค่าระบบ</h2><div class="card"><h3>🏥 ข้อมูล รพ.สต. และเงื่อนไขการเยี่ยม</h3><div class="form">
+ <label class="full">ชื่อ รพ.สต. / หน่วยงาน<input id="s0" value="${esc(S.orgName||'')}" placeholder="เช่น รพ.สต.บ้านตัวอย่าง"></label>
+ <label class="full">ต้นสังกัด / พื้นที่รับผิดชอบ (แสดงใต้ชื่อในหน้าล็อกอิน)<input id="s7" value="${esc(S.orgSub||'')}" placeholder="เช่น ต.ตัวอย่าง อ.เมือง จ.ตัวอย่าง"></label>
+ <label class="full">ที่อยู่ตั้งต้นของผู้ป่วยใหม่<input id="s8" value="${esc(S.defAddr||'')}" placeholder="เช่น ต.ตัวอย่าง อ.เมือง จ.ตัวอย่าง"></label>
  <label>ละติจูดหน่วยบริการ (แสดงบนแผนที่)<div class="gps"><input id="s5" inputmode="decimal" value="${esc(S.orgLat||'')}"><button type="button" class="sm sec" onclick="orgGPS()">📍 ดึงพิกัด</button></div></label>
  <label>ลองจิจูดหน่วยบริการ<input id="s6" inputmode="decimal" value="${esc(S.orgLng||'')}"></label>
  <label>ชม. ต่อการเยี่ยม 1 ครั้ง (ค่าตั้งต้น)<input type="number" id="s1" value="${S.visitHrs}" step="0.5" min="0"></label>
  <label>ชม. เวรประจำศูนย์<input type="number" id="s2" value="${S.dutyHrs}" step="0.5" min="0"></label>
  <label>นับเสาร์-อาทิตย์เป็นวันทำงาน<select id="s3"><option value="0">ไม่นับ</option><option value="1" ${S.weekend?'selected':''}>นับ</option></select></label>
  <label class="full">วันหยุดนักขัตฤกษ์ (บรรทัดละ 1 วัน เช่น 2569-04-13)<textarea id="s4" rows="4">${esc(S.holidays)}</textarea></label></div><br><button onclick="saveSet()">💾 บันทึก</button></div>
- ${gsCard()}<div class="card"><h3>สำรอง/กู้คืนข้อมูล</h3><p class="mut">ข้อมูลเก็บในเบราว์เซอร์ของเครื่องนี้ ควรสำรองเป็นประจำ</p><div class="toolbar">
+ ${credCard()}${gsCard()}<div class="card"><h3>สำรอง/กู้คืนข้อมูล</h3><p class="mut">ข้อมูลเก็บในเบราว์เซอร์ของเครื่องนี้ ควรสำรองเป็นประจำ</p><div class="toolbar">
  <button onclick="dl('smartcg_backup_'+todayISO()+'.json',JSON.stringify(db),'application/json')">⬇️ สำรองข้อมูล (JSON)</button>
  <label class="btnlike">⬆️ กู้คืนจากไฟล์<input type="file" accept=".json" hidden onchange="restore(this)"></label>
  <button class="sec" onclick="csvPat()">⬇️ รายชื่อผู้ป่วย (CSV)</button>
  <button class="del" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button></div></div>
  <div class="card">ผู้ป่วย ${db.patients.length} • CG ${db.cgs.length} • ADL ${db.adl.length} • TAI ${db.tai.length} • เยี่ยมบ้าน ${db.visits.length} รายการ</div>`)}
-function saveSet(){Object.assign(db.settings,{orgName:$('#s0').value.trim(),visitHrs:+$('#s1').value||0,dutyHrs:+$('#s2').value||0,weekend:$('#s3').value==='1',holidays:$('#s4').value,orgLat:$('#s5').value.trim(),orgLng:$('#s6').value.trim()});save();alert('บันทึกการตั้งค่าแล้ว')}
+function saveSet(){Object.assign(db.settings,{orgName:$('#s0').value.trim(),visitHrs:+$('#s1').value||0,dutyHrs:+$('#s2').value||0,weekend:$('#s3').value==='1',holidays:$('#s4').value,orgLat:$('#s5').value.trim(),orgLng:$('#s6').value.trim(),orgSub:$('#s7').value.trim(),defAddr:$('#s8').value.trim()});save();alert('บันทึกการตั้งค่าแล้ว')}
 function restore(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.patients||!d.cgs)throw 0;if(!confirm('ข้อมูลปัจจุบันจะถูกแทนที่ ยืนยัน?'))return;db=d;db._h=null;normDb();save();load();alert('กู้คืนสำเร็จ');(async()=>{if(gsReady()&&confirm('ส่งข้อมูลที่กู้คืนขึ้น Google Sheet ด้วยหรือไม่?'))await gsPushAll();go('dash')})()}catch(e){alert('ไฟล์ไม่ถูกต้อง')}};r.readAsText(f)}
 function csvPat(){const rows=[['ชื่อ-สกุล','เลขบัตรประชาชน','วันเกิด','อายุ','เพศ','หมู่','ที่อยู่','Latitude','Longitude','เบอร์โทร','โรคประจำตัว','ADL','TAI','กลุ่ม','CG','ญาติ','เบอร์ญาติ','สถานะ']];
  db.patients.forEach(p=>rows.push([p.name,p.cid?"'"+p.cid:'',p.birth?thDate(p.birth):'',age(p.birth),p.sex,p.moo,p.address,p.lat,p.lng,p.phone,p.disease,p.adl,p.tai,p.group,cgName(p.cgId),p.relative,p.relPhone,p.status==='inactive'?'จำหน่าย':'อยู่ในความดูแล']));
