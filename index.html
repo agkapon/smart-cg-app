@@ -398,15 +398,21 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastAct=D
 schedPoll();
 window.addEventListener('online',()=>syncNow());
 
-function credCard(){const S=db.settings;return `<div class="card"><h3>🔐 ผู้ใช้งานและรหัสผ่านเข้าระบบ</h3><p class="mut" style="margin-top:0">${!S.adminPw?'<b style="color:#dc2626">⚠️ ขณะนี้ผู้ดูแลระบบยังใช้รหัสผ่านเริ่มต้น (admin / admin) กรุณาเปลี่ยน</b><br>':''}${!S.cgPw?'CG ยังใช้รหัสเริ่มต้น (cg / cg) ':''}รหัสผ่านจะถูกเก็บแบบเข้ารหัส (SHA-256) เว้นช่องรหัสผ่านไว้ = ไม่เปลี่ยน</p><div class="form"><label>ชื่อผู้ใช้ผู้ดูแลระบบ<input id="c1" value="${esc(S.adminUser||'admin')}"></label><label>รหัสผ่านใหม่ของผู้ดูแลระบบ<input id="c2" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label><label>ชื่อผู้ใช้สำหรับ CG (ใช้ร่วมกันทุกคน)<input id="c3" value="${esc(S.cgUser||'cg')}"></label><label>รหัสผ่านใหม่ของ CG<input id="c4" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label></div><br><button onclick="saveCred()">💾 บันทึกรหัสผ่าน</button></div>`}
+function credCard(){const S=db.settings;return `<div class="card"><h3>🔐 ผู้ใช้งานและรหัสผ่านเข้าระบบ</h3><p class="mut" style="margin-top:0">${!S.adminPw?'<b style="color:#dc2626">⚠️ ขณะนี้ผู้ดูแลระบบยังใช้รหัสผ่านเริ่มต้น (admin / admin) กรุณาเปลี่ยน</b><br>':''}${!S.cgPw?'รหัสกลางของ CG ยังเป็นค่าเริ่มต้น (cg / cg) ':''}รหัสผ่านจะถูกเก็บแบบเข้ารหัส (SHA-256) เว้นช่องรหัสผ่านไว้ = ไม่เปลี่ยน</p><div class="form"><label>ชื่อผู้ใช้ผู้ดูแลระบบ<input id="c1" value="${esc(S.adminUser||'admin')}"></label><label>รหัสผ่านใหม่ของผู้ดูแลระบบ<input id="c2" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label><label>ชื่อผู้ใช้ของรหัสกลาง CG<input id="c3" value="${esc(S.cgUser||'cg')}"></label><label>รหัสผ่านกลางของ CG (ใช้เมื่อ CG ยังไม่ตั้งรหัสส่วนตัว)<input id="c4" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label></div><br><button onclick="saveCred()">💾 บันทึกรหัสผ่าน</button></div>`}
 function saveCred(){const S=db.settings,au=$('#c1').value.trim(),cu=$('#c3').value.trim(),ap=$('#c2').value,cp=$('#c4').value;
  if(!au||!cu)return alert('กรุณากรอกชื่อผู้ใช้ทั้งสองช่อง');if((ap&&ap.length<6)||(cp&&cp.length<6))return alert('รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร');
  S.salt=S.salt||uid();S.adminUser=au;S.cgUser=cu;if(ap)S.adminPw=hashPw(S.salt,ap);if(cp)S.cgPw=hashPw(S.salt,cp);
 save();alert('บันทึกแล้ว');rSet()}
 function onboard(){if(currentUser.role!=='admin'||db.cgs.length||db.patients.length)return '';return `<div class="card" style="border-left:5px solid #8b6447"><h3>👋 ยินดีต้อนรับสู่ระบบเยี่ยมบ้านผู้ป่วย LTC</h3><p style="margin-top:0">เริ่มต้นใช้งานสำหรับ รพ.สต. ของท่านตามลำดับนี้</p><ol style="line-height:2.2;padding-left:20px"><li>ตั้งชื่อ รพ.สต. พื้นที่ และพิกัดหน่วยบริการ <button class="sm" onclick="go('set')">ไปที่ตั้งค่า</button></li><li>เปลี่ยนรหัสผ่านเข้าระบบ <button class="sm sec" onclick="go('set')">ไปที่ตั้งค่า</button></li><li>เพิ่มรายชื่อ CG <button class="sm" onclick="go('cgs')">ผู้ดูแล (CG)</button></li><li>เพิ่มผู้สูงอายุ/ผู้ป่วย แล้วมอบหมายให้ CG <button class="sm" onclick="go('patients')">ทะเบียนผู้ป่วย</button></li><li>ให้ CG ใช้งานจากมือถือ: ตั้งค่า &gt; เชื่อมต่อ Google Sheet ของ รพ.สต. ตนเอง</li></ol></div>`}
+function rMyPw(){const c=db.cgs.find(x=>x.id===currentUser.cgId);
+ M(`<h2>🔑 รหัสผ่านของฉัน</h2><div class="card" style="max-width:480px"><p class="mut" style="margin-top:0">${c&&c.pw?'คุณตั้งรหัสผ่านส่วนตัวไว้แล้ว สามารถเปลี่ยนได้ที่นี่':'ตอนนี้ยังใช้รหัสกลาง แนะนำให้ตั้งรหัสผ่านส่วนตัวของคุณเอง'}</p><div class="form" style="grid-template-columns:1fr">${c&&c.pw?'<label>รหัสผ่านปัจจุบัน<input id="mp0" type="password" autocomplete="current-password"></label>':''}<label>รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)<input id="mp1" type="password" autocomplete="new-password"></label><label>ยืนยันรหัสผ่านใหม่<input id="mp2" type="password" autocomplete="new-password"></label></div><br><button onclick="saveMyPw()">💾 บันทึกรหัสผ่าน</button></div>`)}
+function saveMyPw(){const c=db.cgs.find(x=>x.id===currentUser.cgId);if(!c)return;const p1=$('#mp1').value,p2=$('#mp2').value;
+ if(c.pw&&cgPwHash(c.id,$('#mp0').value)!==c.pw)return alert('รหัสผ่านปัจจุบันไม่ถูกต้อง');
+ if(p1.length<6)return alert('รหัสผ่านใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร');if(p1!==p2)return alert('รหัสผ่านใหม่ไม่ตรงกัน');
+ c.pw=cgPwHash(c.id,p1);save();alert('เปลี่ยนรหัสผ่านเรียบร้อย');rMyPw()}
 /* ---------- LOGIN ---------- */
 function fillCgLogin(){load();fillLoginBrand();const sel=$('#lcgId');if(sel)sel.innerHTML=db.cgs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
-function toggleCgSel(val){$('#cgSelBox').style.display=val==='cg'?'block':'none';if(val==='cg'){fillCgLogin()}}
+function toggleCgSel(val){$('#cgSelBox').style.display=val==='cg'?'block':'none';$('#lu').required=val!=='cg';$('#lu').placeholder=val==='cg'?'เว้นว่างได้ ถ้ามีรหัสผ่านส่วนตัวแล้ว':'กรอกชื่อผู้ใช้';if(val==='cg'){fillCgLogin()}}
 function sha256(str){const u=new TextEncoder().encode(str),l=u.length,n=((l+9+63)>>6)<<6,w=new Uint8Array(n);w.set(u);w[l]=0x80;const dv=new DataView(w.buffer);dv.setUint32(n-4,(l*8)>>>0);dv.setUint32(n-8,Math.floor(l*8/4294967296));
  const pr=[];for(let c=2;pr.length<64;c++){let ok=true;for(let d=2;d*d<=c;d++)if(c%d===0){ok=false;break}if(ok)pr.push(c)}
  const fr=x=>Math.floor((x-Math.floor(x))*4294967296),K=pr.map(p=>fr(Math.cbrt(p)));let H=pr.slice(0,8).map(p=>fr(Math.sqrt(p)));
@@ -419,14 +425,18 @@ function sha256(str){const u=new TextEncoder().encode(str),l=u.length,n=((l+9+63
 const hashPw=(salt,pw)=>sha256((salt||'')+':'+pw);
 function credOk(role,u,p){const S=db.settings,k=role==='admin'?'admin':'cg',user=S[k+'User']||k,pw=S[k+'Pw'];if(u!==user)return false;return pw?hashPw(S.salt,p)===pw:p===k}
 function fillLoginBrand(){const S=db.settings,e=$('#lorg');if(!e)return;e.innerHTML=`🏥 <b>${esc(S.orgName||'')}</b>${S.orgSub?`<small>${esc(S.orgSub)}</small>`:''}`}
+const cgPwHash=(id,p)=>hashPw('cg:'+id,p);
 function doLogin(e){
  e.preventDefault();load();
- const role=$('#lrole').value,u=$('#lu').value.trim(),p=$('#lp').value;$('#lerr').textContent='';
- if(!credOk(role,u,p))return $('#lerr').textContent=role==='admin'?'ชื่อผู้ใช้หรือรหัสผ่านผู้ดูแลระบบไม่ถูกต้อง':'ชื่อผู้ใช้หรือรหัสผ่าน CG ไม่ถูกต้อง';
- if(role==='admin')currentUser={role:'admin',cgId:null,name:'ผู้ดูแลระบบ (Admin)'};
- else{const cgId=$('#lcgId').value;if(!cgId)return $('#lerr').textContent='กรุณาเลือกชื่อ CG';const c=db.cgs.find(x=>x.id===cgId);currentUser={role:'cg',cgId:cgId,name:c?c.name:'CG'}}
+ const role=$('#lrole').value,u=$('#lu').value.trim(),p=$('#lp').value;$('#lerr').textContent='';const bad=m=>{$('#lerr').textContent=m};
+ if(role==='admin'){if(!credOk('admin',u,p))return bad('ชื่อผู้ใช้หรือรหัสผ่านผู้ดูแลระบบไม่ถูกต้อง');currentUser={role:'admin',cgId:null,name:'ผู้ดูแลระบบ (Admin)'}}
+ else{const c=db.cgs.find(x=>x.id===$('#lcgId').value);if(!c)return bad('กรุณาเลือกชื่อ CG');
+  const ok=c.pw?cgPwHash(c.id,p)===c.pw:!!(u&&credOk('cg',u,p));
+  if(!ok)return bad(c.pw?'รหัสผ่านไม่ถูกต้อง':'ยังไม่ได้ตั้งรหัสผ่านส่วนตัว ให้ใช้ชื่อผู้ใช้/รหัสผ่านกลางที่ผู้ดูแลระบบแจ้ง หรือขอให้ผู้ดูแลตั้งรหัสให้');
+  currentUser={role:'cg',cgId:c.id,name:c.name}}
  sessionStorage.setItem('scg_user',JSON.stringify(currentUser));start();
- if(role==='admin'&&!db.settings.adminPw)setTimeout(()=>alert('⚠️ ขณะนี้ใช้รหัสผ่านเริ่มต้น (admin / admin)\nกรุณาไปที่ ตั้งค่าระบบ > ผู้ใช้งานและรหัสผ่าน เพื่อเปลี่ยนก่อนใช้งานจริง'),500)}
+ if(role==='admin'&&!db.settings.adminPw)setTimeout(()=>alert('⚠️ ขณะนี้ใช้รหัสผ่านเริ่มต้น (admin / admin)\nกรุณาไปที่ ตั้งค่าระบบ > ผู้ใช้งานและรหัสผ่าน เพื่อเปลี่ยนก่อนใช้งานจริง'),500);
+ if(role==='cg'&&!db.cgs.find(x=>x.id===currentUser.cgId).pw)setTimeout(()=>alert('แนะนำให้ตั้งรหัสผ่านส่วนตัวที่เมนู "🔑 รหัสผ่านของฉัน"'),500)}
 function logout(){sessionStorage.removeItem('scg_user');location.reload()}
 function start(){const s=sessionStorage.getItem('scg_user');if(!s)return;try{currentUser=JSON.parse(s)}catch(e){return logout()}
  $('#login').style.display='none';$('#app').style.display='flex';load();$('#userRoleBadge').textContent=currentUser.name;if(currentUser.role==='cg')state.cg=currentUser.cgId;go('dash')}
@@ -438,10 +448,10 @@ const PAGES={
  map:['🗺️ แผนที่บ้านผู้รับบริการ',()=>rMap(),['admin']],
  cgs:['🧑‍⚕️ ผู้ดูแล (CG)',()=>rCg(),['admin']],
  adl:['📋 ประเมิน ADL',()=>rAdl(),['admin','cg']],
- tai:['🧩 ประเมิน TAI',()=>rTai(),['admin','cg']],
  sch:['📅 ตารางเยี่ยมบ้าน',()=>rSch(),['admin','cg']],
  visit:['🏡 บันทึกเยี่ยมบ้าน',()=>rVisit(),['admin','cg']],
  hist:['🕘 ประวัติการเยี่ยม',()=>rHist(),['admin','cg']],
+ mypw:['🔑 รหัสผ่านของฉัน',()=>rMyPw(),['cg']],
  vdet:['รายละเอียดการเยี่ยม',()=>rVdet(),['admin','cg'],true],
  report:['📊 รายงานสรุปภาพรวม',()=>rReport(),['admin']],
  set:['⚙️ ตั้งค่าระบบ',()=>rSet(),['admin']]
@@ -633,7 +643,7 @@ function rVdet(){const v=db.visits.find(x=>x.id===state.vdet);if(!v){go('hist');
   <div class="dcard" style="--c:#f97316"><div class="dh"><div class="ic">⚠</div><b>ปัญหาที่พบและคำแนะนำ</b></div><div class="dbd">${v.problem||v.solution?`${v.problem?`<span class="pill" style="color:#b45309;border-color:#fde68a;background:#fffbeb">${esc(v.problem.length>40?v.problem.slice(0,40)+'…':v.problem)}</span>`:''}${v.problem?`<div class="krow"><span>ปัญหา / อุปสรรค</span><span>${esc(v.problem)}</span></div>`:''}${v.solution?`<div class="krow"><span>วิธีแก้ไข / คำแนะนำ</span><span>${esc(v.solution)}</span></div>`:''}`:'<p class="mut" style="margin:0">ไม่พบปัญหา</p>'}</div></div>
   <div class="dcard" style="--c:#8b5cf6"><div class="dh"><div class="ic">♿</div><b>ADL</b></div><div class="dbd">${adl?`<b style="font-size:24px">${adl.score}</b> / 20 <span class="badge ${adlCat(adl.score)[1]}">${adlCat(adl.score)[0]}</span><div class="mut">ประเมินโดย ${esc(adl.by||'-')}</div>`:`<span class="mut">ไม่ได้ประเมิน ADL ในครั้งนี้${hasAdl(p)?' (ล่าสุด '+p.adl+' คะแนน)':''}</span>`}</div></div>
   <div class="dcard" style="--c:#0ea5e9"><div class="dh"><div class="ic">👴</div><b>ข้อมูลผู้สูงอายุ</b></div><div class="dbd">
-   <div class="krow"><span>ชื่อ-สกุล</span><span>${esc(p.name)}</span></div><div class="krow"><span>อายุ / เพศ</span><span>${age(p.birth)||'-'} ปี / ${esc(p.sex||'-')}</span></div><div class="krow"><span>ที่อยู่</span><span>ม.${esc(p.moo||'-')} ${esc(p.address||'')}</span></div><div class="krow"><span>โรคประจำตัว</span><span>${esc(p.disease||'-')}</span></div><div class="krow"><span>กลุ่ม / TAI</span><span>${p.group??'-'} / ${esc(p.tai||'-')}</span></div><div class="krow"><span>ญาติ/ผู้ดูแลหลัก</span><span>${esc(p.relative||'-')} ${esc(p.relPhone||'')}</span></div></div></div>
+   <div class="krow"><span>ชื่อ-สกุล</span><span>${esc(p.name)}</span></div><div class="krow"><span>อายุ / เพศ</span><span>${age(p.birth)||'-'} ปี / ${esc(p.sex||'-')}</span></div><div class="krow"><span>ที่อยู่</span><span>ม.${esc(p.moo||'-')} ${esc(p.address||'')}</span></div><div class="krow"><span>โรคประจำตัว</span><span>${esc(p.disease||'-')}</span></div><div class="krow"><span>กลุ่มการดูแล</span><span>${p.group??'-'}</span></div><div class="krow"><span>ญาติ/ผู้ดูแลหลัก</span><span>${esc(p.relative||'-')} ${esc(p.relPhone||'')}</span></div></div></div>
  </div></div>`);
  setTimeout(()=>{if(pt&&typeof L!=='undefined'&&$('#vmap')){const mp=L.map('vmap').setView(pt,17);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(mp);L.marker(pt).addTo(mp);if(hasV&&+v.acc>0)L.circle(pt,{radius:+v.acc,color:'#ec4899',weight:1}).addTo(mp)}loadVPhotos(v)},60)}
 
@@ -651,8 +661,8 @@ function rPat(){const q=state.q.toLowerCase(),base=currentUser.role==='cg'?db.pa
  ${currentUser.role==='admin'?`<select style="width:auto" onchange="state.cg=this.value;rPat()">${cgOpts(state.cg,'CG ทั้งหมด')}</select>`:''}
  <select style="width:auto" onchange="state.gf=this.value;rPat()"><option value="">ทุกกลุ่ม</option>${[0,1,2,3,4].map(i=>`<option value="${i}" ${state.gf===String(i)?'selected':''}>${GROUPS[i]}</option>`).join('')}</select>
  <span class="mut" style="margin-left:auto">พบ ${list.length} ราย</span></div>
- <div class="tw"><table><tr><th>#</th><th>ชื่อ-สกุล</th><th>วันเกิด</th><th>อายุ</th><th>ที่อยู่ / พิกัด</th><th>โทร</th><th>โรคประจำตัว</th><th>ADL</th><th>TAI</th><th>กลุ่ม</th><th>CG</th><th class="noprint">จัดการ</th></tr>
- ${list.map((p,i)=>{const [c,cl]=adlCat(p.adl);return `<tr style="${p.status==='inactive'?'opacity:.5':''}"><td>${i+1}</td><td><b>${esc(p.name)}</b>${p.status==='inactive'?' <span class="badge b-gry">จำหน่าย</span>':''}</td><td style="white-space:nowrap">${p.birth?thDate(p.birth):'-'}</td><td>${age(p.birth)}</td><td>ม.${esc(p.moo)} ${p.lat&&p.lng?`<br><a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" class="badge b-blu" style="text-decoration:none">📍 นำทาง</a>`:''}</td><td>${esc(p.phone||'-')}</td><td>${esc(p.disease||'-')}</td><td style="white-space:nowrap">${p.adl??''} <span class="badge ${cl}">${c}</span></td><td>${esc(p.tai||'')}</td><td><b>${p.group}</b></td><td>${esc(cgName(p.cgId))}</td><td style="white-space:nowrap" class="noprint"><button class="sm" onclick="editPat('${p.id}')">แก้</button> <button class="sm sec" onclick="state.pre='${p.id}';go('adl')">ADL</button> <button class="sm sec" onclick="state.pre='${p.id}';go('tai')">TAI</button>${currentUser.role==='admin'?` <button class="sm del" onclick="delPat('${p.id}')">ลบ</button>`:''}</td></tr>`}).join('')}</table></div></div>`)}
+ <div class="tw"><table><tr><th>#</th><th>ชื่อ-สกุล</th><th>วันเกิด</th><th>อายุ</th><th>ที่อยู่ / พิกัด</th><th>โทร</th><th>โรคประจำตัว</th><th>ADL</th><th>กลุ่ม</th><th>CG</th><th class="noprint">จัดการ</th></tr>
+ ${list.map((p,i)=>{const [c,cl]=adlCat(p.adl);return `<tr style="${p.status==='inactive'?'opacity:.5':''}"><td>${i+1}</td><td><b>${esc(p.name)}</b>${p.status==='inactive'?' <span class="badge b-gry">จำหน่าย</span>':''}</td><td style="white-space:nowrap">${p.birth?thDate(p.birth):'-'}</td><td>${age(p.birth)}</td><td>ม.${esc(p.moo)} ${p.lat&&p.lng?`<br><a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" class="badge b-blu" style="text-decoration:none">📍 นำทาง</a>`:''}</td><td>${esc(p.phone||'-')}</td><td>${esc(p.disease||'-')}</td><td style="white-space:nowrap">${p.adl??''} <span class="badge ${cl}">${c}</span></td><td><b>${p.group}</b></td><td>${esc(cgName(p.cgId))}</td><td style="white-space:nowrap" class="noprint"><button class="sm" onclick="editPat('${p.id}')">แก้</button> <button class="sm sec" onclick="state.pre='${p.id}';go('adl')">ADL</button> ${currentUser.role==='admin'?` <button class="sm del" onclick="delPat('${p.id}')">ลบ</button>`:''}</td></tr>`}).join('')}</table></div></div>`)}
 function rPatKeep(){rPat();const e=$('#pq');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length)}}
 function editPat(id){const isCG=currentUser.role==='cg';const p=id?P(id):{name:'',cid:'',birth:'',sex:'',moo:'',address:(db.settings.defAddr||''),lat:'',lng:'',phone:'',disease:'',adl:'',tai:'',group:1,cgId:currentUser.cgId||'',relative:'',relPhone:'',status:'active'};
  modal(`<h3>${id?'แก้ไข':'เพิ่ม'}ข้อมูลผู้สูงอายุ / ผู้ป่วย</h3><form class="form" onsubmit="savePat(event,'${id||''}')">
@@ -667,7 +677,7 @@ function editPat(id){const isCG=currentUser.role==='cg';const p=id?P(id):{name:'
  <label>ลองจิจูด (Longitude)<input name="lng" id="pLng" inputmode="decimal" value="${esc(p.lng||'')}"></label>
  <label class="full">โรคประจำตัว<input name="disease" placeholder="เช่น เบาหวาน, ความดันโลหิตสูง" value="${esc(p.disease)}"></label>
  <label>คะแนน ADL (0-20)<input type="number" min="0" max="20" name="adl" value="${p.adl??''}"></label>
- <label>TAI Class<select name="tai"><option value="">- เลือก TAI -</option>${TAI_CLASSES.map(t=>`<option ${p.tai===t?'selected':''}>${t}</option>`).join('')}</select></label>
+ 
  <label>กลุ่มการดูแล<select name="group">${[0,1,2,3,4].map(i=>`<option value="${i}" ${+p.group===i?'selected':''}>${GROUPS[i]}</option>`).join('')}</select></label>
  <label>CG ผู้ดูแล<select name="cgId" ${isCG?'disabled':''}>${cgOpts(p.cgId,'- เลือก CG -')}</select></label>
  <label>ญาติ/ผู้ดูแลหลัก<input name="relative" value="${esc(p.relative||'')}"></label>
@@ -683,13 +693,13 @@ function savePat(e,id){e.preventDefault();const f=Object.fromEntries(new FormDat
  if(currentUser.role==='cg')f.cgId=currentUser.cgId;
  f.group=+f.group;f.adl=f.adl===''?'':+f.adl;if(!f.sex)f.sex=guessSex(f.name);
  if(id)Object.assign(P(id),f);else db.patients.push({id:uid(),...f});save();closeM();rPat()}
-function delPat(id){if(currentUser.role!=='admin')return alert('เฉพาะผู้ดูแลระบบเท่านั้นที่ลบได้');const p0=P(id);if(!p0)return;if(!confirm('ยืนยันลบ "'+p0.name+'" และประวัติ ADL/TAI/การเยี่ยมบ้านทั้งหมด?\nลบแล้วกู้คืนไม่ได้ (แนะนำเปลี่ยนสถานะเป็น "จำหน่าย" แทน)'))return;
+function delPat(id){if(currentUser.role!=='admin')return alert('เฉพาะผู้ดูแลระบบเท่านั้นที่ลบได้');const p0=P(id);if(!p0)return;if(!confirm('ยืนยันลบ "'+p0.name+'" และประวัติ ADL/การเยี่ยมบ้านทั้งหมด?\nลบแล้วกู้คืนไม่ได้ (แนะนำเปลี่ยนสถานะเป็น "จำหน่าย" แทน)'))return;
  db.patients=db.patients.filter(p=>p.id!==id);db.adl=db.adl.filter(x=>x.pid!==id);db.tai=db.tai.filter(x=>x.pid!==id);db.visits=db.visits.filter(x=>x.pid!==id);Object.values(db.schedules).forEach(s=>delete s.visits[id]);save();closeM();rPat()}
 
 /* ---------- CG ---------- */
 function rCg(){M(`<h2>จัดการข้อมูลผู้ดูแล (Caregiver)</h2><div class="card"><div class="toolbar"><button onclick="editCg()">➕ เพิ่ม CG</button><span class="mut" style="margin-left:auto">รวม ${db.cgs.length} คน</span></div>
  <div class="tw"><table><tr><th>#</th><th>ชื่อ-สกุล</th><th>เบอร์โทร</th><th>พื้นที่</th><th>ผู้ป่วย</th><th>ภาระงาน/เดือน</th><th class="noprint">จัดการ</th></tr>
- ${db.cgs.map((c,i)=>{const ps=activeP().filter(p=>p.cgId===c.id),a=ps.filter(p=>p.group==1||p.group==2).length,b=ps.filter(p=>p.group>=3).length;return `<tr><td>${i+1}</td><td><b>${esc(c.name)}</b></td><td>${esc(c.phone||'-')}</td><td>${esc(c.area||'-')}</td><td><b>${ps.length}</b> ราย</td><td>เยี่ยม ${a*2+b*4} ครั้ง + เวรศูนย์ 1</td><td style="white-space:nowrap" class="noprint"><button class="sm" onclick="editCg('${c.id}')">แก้ไข</button> <button class="sm sec" onclick="state.cg='${c.id}';go('patients')">รายชื่อ</button></td></tr>`}).join('')}</table></div></div>`)}
+ ${db.cgs.map((c,i)=>{const ps=activeP().filter(p=>p.cgId===c.id),a=ps.filter(p=>p.group==1||p.group==2).length,b=ps.filter(p=>p.group>=3).length;return `<tr><td>${i+1}</td><td><b>${esc(c.name)}</b>${c.pw?' <span class="badge b-grn">ตั้งรหัสแล้ว</span>':''}</td><td>${esc(c.phone||'-')}</td><td>${esc(c.area||'-')}</td><td><b>${ps.length}</b> ราย</td><td>เยี่ยม ${a*2+b*4} ครั้ง + เวรศูนย์ 1</td><td style="white-space:nowrap" class="noprint"><button class="sm" onclick="editCg('${c.id}')">แก้ไข</button> <button class="sm sec" onclick="state.cg='${c.id}';go('patients')">รายชื่อ</button></td></tr>`}).join('')}</table></div></div>`)}
 function editCg(id){const c=id?db.cgs.find(x=>x.id===id):{name:'',cid:'',phone:'',area:'',note:''};
  modal(`<h3>${id?'แก้ไข':'เพิ่ม'}ข้อมูล CG</h3><form class="form" onsubmit="saveCg(event,'${id||''}')">
  <label class="full">ชื่อ-สกุล CG *<input name="name" required value="${esc(c.name)}"></label>
@@ -697,11 +707,17 @@ function editCg(id){const c=id?db.cgs.find(x=>x.id===id):{name:'',cid:'',phone:'
  <label>เบอร์โทรศัพท์<input name="phone" inputmode="tel" value="${esc(c.phone||'')}"></label>
  <label class="full">พื้นที่รับผิดชอบ<input name="area" value="${esc(c.area||'')}"></label>
  <label class="full">หมายเหตุ<input name="note" value="${esc(c.note||'')}"></label>
+ <label class="full">รหัสผ่านเข้าใช้ของ CG ${c.pw?'(ตั้งแล้ว เว้นว่างถ้าไม่เปลี่ยน)':'(ยังไม่ได้ตั้ง ใช้รหัสกลางอยู่)'}<input name="newpw" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label>
+ ${c.pw?'<label class="chk-item full"><input type="checkbox" name="resetpw"><span>ลบรหัสส่วนตัวของ CG คนนี้ (กลับไปใช้รหัสกลาง)</span></label>':''}
  <div class="full err" id="cerr"></div>
  <div class="full" style="display:flex;gap:10px"><button type="submit">💾 บันทึก</button><button type="button" class="sec" onclick="closeM()">ยกเลิก</button>${id?`<button type="button" class="del" style="margin-left:auto" onclick="delCg('${id}')">ลบ</button>`:''}</div></form>`)}
 function saveCg(e,id){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));f.cid=f.cid.replace(/\D/g,'');f.name=f.name.trim();
  if(f.cid&&!validCID(f.cid))return $('#cerr').textContent='เลขบัตรประชาชนไม่ถูกต้อง';
- if(id)Object.assign(db.cgs.find(c=>c.id===id),f);else db.cgs.push({id:uid(),...f});save();closeM();rCg()}
+ const np=f.newpw||'',rs=f.resetpw;delete f.newpw;delete f.resetpw;
+ if(np&&np.length<6)return $('#cerr').textContent='รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร';
+ let rec;if(id){rec=db.cgs.find(c=>c.id===id);Object.assign(rec,f)}else{rec={id:uid(),...f};db.cgs.push(rec)}
+ if(np)rec.pw=cgPwHash(rec.id,np);else if(rs)delete rec.pw;
+ save();closeM();rCg()}
 function delCg(id){const n=db.patients.filter(p=>p.cgId===id).length;if(n)return alert(`ยังมีผู้ป่วยในความดูแล ${n} ราย กรุณาย้ายไป CG อื่นก่อน`);if(!confirm('ยืนยันลบ CG?'))return;db.cgs=db.cgs.filter(c=>c.id!==id);save();closeM();rCg()}
 
 /* ---------- ADL ---------- */
@@ -721,26 +737,6 @@ function saveAdl(){const pid=$('#ap').value,v=adlVals();if(!pid)return alert('�
  const p=P(pid);p.adl=s;p.adlDate=date;save();alert(`บันทึกสำเร็จ: ${p.name}\nADL = ${s} (${adlCat(s)[0]})`);state.pre=pid;rAdl()}
 function adlHist(){const pid=$('#ap').value,l=db.adl.filter(x=>x.pid===pid).sort((a,b)=>b.date.localeCompare(a.date));
  $('#ahist').innerHTML=!pid?'<p class="mut">เลือกผู้ป่วยเพื่อดูประวัติ</p>':l.length?`<div class="tw"><table><tr><th>วันที่</th><th>คะแนน</th><th>ผล</th><th>รายข้อ</th><th>ผู้ประเมิน</th><th></th></tr>${l.map(x=>{const [c,cl]=adlCat(x.score);return `<tr><td>${thDate(x.date)}</td><td><b>${x.score}</b>/20</td><td><span class="badge ${cl}">${c}</span></td><td>${x.items.join('-')}</td><td>${esc(x.by)}</td><td><button class="sm del" onclick="if(confirm('ลบ?')){db.adl=db.adl.filter(y=>y.id!=='${x.id}');save();adlHist()}">ลบ</button></td></tr>`}).join('')}</table></div>`:'<p class="mut">ยังไม่มีประวัติ</p>'}
-
-/* ---------- TAI ---------- */
-function rTai(){const pid=state.pre||'';state.pre=null;
- M(`<h2>แบบประเมิน TAI</h2><div class="card"><div class="form">
- <label class="full">เลือกผู้ป่วย *<select id="tp" onchange="taiHist()">${patOpts(pid)}</select></label>
- <label>วันที่ประเมิน<input type="date" id="tdate" value="${todayISO()}"></label>
- <label>ผู้ประเมิน<input id="tby" value="${esc(currentUser.name)}"></label></div></div>
- <div class="card"><div class="score" id="tscore">กรุณาประเมินให้ครบ 4 ด้าน</div>
- ${TAI_ITEMS.map(([k,t,o])=>`<div class="q"><b>${t}</b><div class="opts">${o.map((x,s)=>`<label class="chk-item"><input type="radio" name="t${k}" value="${s}" onchange="taiCalc()"><span><b>${s}:</b> ${x}</span></label>`).join('')}</div></div>`).join('')}
- <label class="chk-item" style="margin:10px 0"><input type="checkbox" id="tgrp" checked><span>อัปเดตกลุ่มการดูแลของผู้ป่วยตามผล TAI อัตโนมัติ</span></label>
- <button onclick="saveTai()">💾 บันทึก TAI</button>
- <details style="margin-top:14px"><summary style="cursor:pointer;color:var(--p);font-weight:600">ℹ️ เกณฑ์ TAI → กลุ่มการดูแล</summary><div class="tw"><table style="margin-top:8px"><tr><th>TAI</th><th>ความหมาย</th><th>กลุ่ม</th><th>เยี่ยม/เดือน</th></tr>${TAI_CLASSES.map(t=>`<tr><td><b>${t}</b></td><td>${TAI_DESC[t]}</td><td>${GROUPS[TAI2GROUP[t]]}</td><td>${visitsNeeded(TAI2GROUP[t])}</td></tr>`).join('')}</table></div></details></div>
- <div class="card"><h3>ประวัติ TAI</h3><div id="thist"></div></div>`);taiHist()}
-function taiVals(){const o={};for(const [k] of TAI_ITEMS){const r=document.querySelector(`input[name=t${k}]:checked`);if(!r)return null;o[k]=+r.value}return o}
-function taiCalc(){const v=taiVals();if(!v)return;const c=taiClass(v.m,v.c,v.e,v.t),g=TAI2GROUP[c];$('#tscore').innerHTML=`ผล TAI: <b>${c}</b> — ${TAI_DESC[c]}<br>👉 <span class="badge b-blu">${GROUPS[g]}</span> (เยี่ยม ${visitsNeeded(g)} ครั้ง/เดือน)`}
-function saveTai(){const pid=$('#tp').value,v=taiVals();if(!pid)return alert('กรุณาเลือกผู้ป่วย');if(!v)return alert('กรุณาประเมินให้ครบ 4 ด้าน');
- const c=taiClass(v.m,v.c,v.e,v.t),g=TAI2GROUP[c],p=P(pid);db.tai.push({id:uid(),pid,date:$('#tdate').value,...v,cls:c,group:g,by:$('#tby').value});
- p.tai=c;if($('#tgrp').checked)p.group=g;save();alert(`บันทึกสำเร็จ: TAI = ${c} (${GROUPS[g]})`);state.pre=pid;rTai()}
-function taiHist(){const pid=$('#tp').value,l=db.tai.filter(x=>x.pid===pid).sort((a,b)=>b.date.localeCompare(a.date));
- $('#thist').innerHTML=!pid?'<p class="mut">เลือกผู้ป่วยเพื่อดูประวัติ</p>':l.length?`<div class="tw"><table><tr><th>วันที่</th><th>M</th><th>C</th><th>E</th><th>T</th><th>TAI</th><th>กลุ่ม</th><th>ผู้ประเมิน</th><th></th></tr>${l.map(x=>`<tr><td>${thDate(x.date)}</td><td>${x.m}</td><td>${x.c}</td><td>${x.e}</td><td>${x.t}</td><td><b>${x.cls}</b></td><td>${GROUPS[x.group]}</td><td>${esc(x.by)}</td><td><button class="sm del" onclick="if(confirm('ลบ?')){db.tai=db.tai.filter(y=>y.id!=='${x.id}');save();taiHist()}">ลบ</button></td></tr>`).join('')}</table></div>`:'<p class="mut">ยังไม่มีประวัติ</p>'}
 
 /* ---------- SCHEDULE ---------- */
 function holSet(){const s=new Set();(db.settings.holidays||'').split(/\s+/).forEach(l=>{const m=l.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(m){let y=+m[1];if(y>2400)y-=543;s.add(`${y}-${pad(m[2])}-${pad(m[3])}`)}});return s}
@@ -871,7 +867,7 @@ function vInfo(){const p=P($('#vp').value),d=$('#vd').value;if(!p||!d){$('#vi').
   if($('#vWeight')&&lastV.weight)$('#vWeight').placeholder=`ครั้งก่อน ${lastV.weight}`;
  }
 
- $('#vi').innerHTML=`<div class="q" style="background:#f0fdfa;border-color:#99f6e4">อายุ <b>${age(p.birth)||'-'}</b> ปี | ${p.sex||'-'} | ADL <b>${p.adl??'-'}</b> <span class="badge ${cl}">${c}</span> | TAI <b>${p.tai||'-'}</b> | กลุ่ม <b>${p.group}</b> | โรค: ${esc(p.disease||'-')}<br>${p.lat&&p.lng?`<a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" style="color:#0f766e;font-weight:700">📍 เปิดแผนที่นำทาง</a><br>`:''}นัดเดือนนี้: ${ds.length?ds.map(x=>'วันที่ '+x).join(', '):'ไม่มีในตาราง'} | ครั้งนี้เป็นครั้งที่ <b>${cnt+1}</b> ของเดือน</div>`}
+ $('#vi').innerHTML=`<div class="q" style="background:#f0fdfa;border-color:#99f6e4">อายุ <b>${age(p.birth)||'-'}</b> ปี | ${p.sex||'-'} | ADL <b>${p.adl??'-'}</b> <span class="badge ${cl}">${c}</span> | กลุ่ม <b>${p.group}</b> | โรค: ${esc(p.disease||'-')}<br>${p.lat&&p.lng?`<a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" style="color:#0f766e;font-weight:700">📍 เปิดแผนที่นำทาง</a><br>`:''}นัดเดือนนี้: ${ds.length?ds.map(x=>'วันที่ '+x).join(', '):'ไม่มีในตาราง'} | ครั้งนี้เป็นครั้งที่ <b>${cnt+1}</b> ของเดือน</div>`}
 
 async function saveVisit(e){e.preventDefault();const fd=new FormData(e.target);
  const mins=+fd.get('mins')||60;
@@ -929,11 +925,11 @@ function rSet(){const S=db.settings;
  <label class="btnlike">⬆️ กู้คืนจากไฟล์<input type="file" accept=".json" hidden onchange="restore(this)"></label>
  <button class="sec" onclick="csvPat()">⬇️ รายชื่อผู้ป่วย (CSV)</button>
  <button class="del" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button></div></div>
- <div class="card">ผู้ป่วย ${db.patients.length} • CG ${db.cgs.length} • ADL ${db.adl.length} • TAI ${db.tai.length} • เยี่ยมบ้าน ${db.visits.length} รายการ</div>`)}
+ <div class="card">ผู้ป่วย ${db.patients.length} • CG ${db.cgs.length} • ADL ${db.adl.length} • เยี่ยมบ้าน ${db.visits.length} รายการ</div>`)}
 function saveSet(){Object.assign(db.settings,{orgName:$('#s0').value.trim(),visitHrs:+$('#s1').value||0,dutyHrs:+$('#s2').value||0,weekend:$('#s3').value==='1',holidays:$('#s4').value,orgLat:$('#s5').value.trim(),orgLng:$('#s6').value.trim(),orgSub:$('#s7').value.trim(),defAddr:$('#s8').value.trim()});save();alert('บันทึกการตั้งค่าแล้ว')}
 function restore(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.patients||!d.cgs)throw 0;if(!confirm('ข้อมูลปัจจุบันจะถูกแทนที่ ยืนยัน?'))return;db=d;db._h=null;normDb();save();load();alert('กู้คืนสำเร็จ');(async()=>{if(gsReady()&&confirm('ส่งข้อมูลที่กู้คืนขึ้น Google Sheet ด้วยหรือไม่?'))await gsPushAll();go('dash')})()}catch(e){alert('ไฟล์ไม่ถูกต้อง')}};r.readAsText(f)}
-function csvPat(){const rows=[['ชื่อ-สกุล','เลขบัตรประชาชน','วันเกิด','อายุ','เพศ','หมู่','ที่อยู่','Latitude','Longitude','เบอร์โทร','โรคประจำตัว','ADL','TAI','กลุ่ม','CG','ญาติ','เบอร์ญาติ','สถานะ']];
- db.patients.forEach(p=>rows.push([p.name,p.cid?"'"+p.cid:'',p.birth?thDate(p.birth):'',age(p.birth),p.sex,p.moo,p.address,p.lat,p.lng,p.phone,p.disease,p.adl,p.tai,p.group,cgName(p.cgId),p.relative,p.relPhone,p.status==='inactive'?'จำหน่าย':'อยู่ในความดูแล']));
+function csvPat(){const rows=[['ชื่อ-สกุล','เลขบัตรประชาชน','วันเกิด','อายุ','เพศ','หมู่','ที่อยู่','Latitude','Longitude','เบอร์โทร','โรคประจำตัว','ADL','กลุ่ม','CG','ญาติ','เบอร์ญาติ','สถานะ']];
+ db.patients.forEach(p=>rows.push([p.name,p.cid?"'"+p.cid:'',p.birth?thDate(p.birth):'',age(p.birth),p.sex,p.moo,p.address,p.lat,p.lng,p.phone,p.disease,p.adl,p.group,cgName(p.cgId),p.relative,p.relPhone,p.status==='inactive'?'จำหน่าย':'อยู่ในความดูแล']));
  dl(`รายชื่อผู้สูงอายุ_${todayISO()}.csv`,toCSV(rows),'text/csv;charset=utf-8')}
 function resetAll(){if(prompt('พิมพ์ RESET เพื่อยืนยันล้างข้อมูลทั้งหมด')!=='RESET')return;localStorage.removeItem(KEY);localStorage.removeItem(GSS);load();alert('รีเซ็ตเรียบร้อย (ล้างเฉพาะเครื่องนี้ ข้อมูลใน Google Sheet ยังอยู่ และจะถูกดึงกลับมาเมื่อซิงค์)');go('dash');syncNow(true)}
 </script>
