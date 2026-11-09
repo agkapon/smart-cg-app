@@ -114,6 +114,8 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 .lorg{background:#faf6f1;border:1px solid #ece7e1;border-radius:12px;padding:10px 12px;margin-bottom:6px;text-align:center;font-size:14px;color:#5c4030}.lorg b{display:block;font-size:15px}.lorg small{color:#8b6447}
 .lbox button{background:#8b6447}.lbox button:hover{background:#74513a}
 .lbox input:focus,.lbox select:focus{outline:2px solid #d4a373;border-color:#d4a373}
+.lconn{font-size:12px;border-radius:10px;padding:8px 10px;margin:6px 0;line-height:1.5}.lconn.warn{background:#fef3c7;color:#92400e}.lconn.ok{background:#dcfce7;color:#166534}
+.lbox button.lconnb{width:100%;margin-top:10px;background:#fff;color:#8b6447;border:1.5px solid #8b6447}.lbox button.lconnb:hover{background:#faf6f1}
 .lfoot{text-align:center;color:#fff;font-size:13px;line-height:1.7;padding:4px 10px;text-shadow:0 1px 3px #0004}
 .lfoot:before{content:"";display:block;width:60px;height:2px;background:#ffffff77;border-radius:2px;margin:0 auto 12px}
 /* ===== MAP / HISTORY / DETAIL ===== */
@@ -183,6 +185,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 <div class="lbrand"><div class="llogo">🏡</div><h1>ระบบเยี่ยมบ้านผู้ป่วย LTC</h1><p>Long Term Care · ระบบดูแลผู้สูงอายุและผู้มีภาวะพึ่งพิง</p></div>
 <form class="lbox" onsubmit="doLogin(event)">
 <div class="lorg" id="lorg"></div>
+<div id="lconn" class="lconn"></div>
 <label>ประเภทผู้ใช้งาน
 <select id="lrole" onchange="toggleCgSel(this.value)">
 <option value="admin">ผู้ดูแลระบบ (Admin)</option>
@@ -191,7 +194,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 <div id="cgSelBox" style="display:none"><label>เลือกชื่อ CG ของท่าน<select id="lcgId"></select></label></div>
 <label>ชื่อผู้ใช้<input id="lu" autocomplete="username" required placeholder="กรอกชื่อผู้ใช้"></label>
 <label>รหัสผ่าน<input id="lp" type="password" autocomplete="current-password" required placeholder="กรอกรหัสผ่าน"></label>
-<div id="lerr" class="err"></div><button style="width:100%;margin-top:14px">เข้าสู่ระบบ</button><div style="text-align:center;margin-top:12px"><a href="#" onclick="gsModal();return false" style="font-size:13px;color:var(--br)">☁️ เชื่อมต่อ Google Sheet (สำหรับเครื่องใหม่)</a></div></form>
+<div id="lerr" class="err"></div><button style="width:100%;margin-top:14px">เข้าสู่ระบบ</button><button type="button" class="lconnb" onclick="gsModal()">☁️ เชื่อมต่อเครื่องนี้กับ Google Sheet</button></form>
 <div class="lfoot">พัฒนาโดย <b>นายเอกพล อาจโยธา</b> ผอ.รพ.สต.บ้านห้วยอาลัย</div>
 </div></div>
 
@@ -287,7 +290,7 @@ const hm=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes()
 function gsCfg(){try{const c=JSON.parse(localStorage.getItem(GSK));return c&&c.url&&c.key?c:null}catch(e){return null}}
 function gsState(){try{return JSON.parse(localStorage.getItem(GSS))||{}}catch(e){return {}}}
 function gsReady(){return !!gsCfg()}
-function gsErr(e){return e&&(e.name==='AbortError'||e instanceof TypeError)?'เชื่อมต่อ Google Sheet ไม่ได้ (ออฟไลน์?) ข้อมูลยังเก็บในเครื่อง จะส่งให้เมื่อออนไลน์':(e&&e.message)||String(e)}
+function gsErr(e){return e&&(e.name==='AbortError'||e.name==='TypeError')?'เชื่อมต่อ Google Sheet ไม่ได้ (ออฟไลน์?) ข้อมูลยังเก็บในเครื่อง จะส่งให้เมื่อออนไลน์':(e&&e.message)||String(e)}
 function setStatus(t,col){gsStatus=t;const e=$('#syncSt');if(e){e.textContent=t;e.style.color=col||''}}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
 function normDb(){db.settings=Object.assign({orgName:'โรงพยาบาลส่งเสริมสุขภาพตำบล',orgSub:'',defAddr:'',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});COLS.forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{};db._d=db._d||{}}
@@ -363,7 +366,7 @@ async function gsPushAll(){markAllDirty();return syncNow(true)}
 /* หน้าจอตั้งค่า */
 function gsModal(){const c=gsCfg()||{};
  modal(`<h3>☁️ เชื่อมต่อ Google Sheet</h3>
- <p class="mut" style="font-size:13px;margin-top:0">ใส่ <b>URL ของ Web App</b> (ลงท้าย /exec) และ <b>รหัส (Key)</b> ที่ได้รับ<br>• ผู้ดูแลระบบ: ใช้ ADMIN_KEY ที่ตั้งไว้ใน Apps Script<br>• CG: ใช้รหัสเฉพาะตัวที่ผู้ดูแลระบบให้ (ดูได้ที่แท็บ CG ใน Google Sheet)</p>
+ <p class="mut" style="font-size:13px;margin-top:0">เครื่องใหม่: กรอก 2 ช่องนี้ แล้วระบบจะ<b>เข้าสู่ระบบให้อัตโนมัติ</b> (ครั้งต่อไปใช้รหัสผ่านปกติ)<br>ใส่ <b>URL ของ Web App</b> (ลงท้าย /exec) และ <b>รหัส (Key)</b> ที่ได้รับ<br>• ผู้ดูแลระบบ: ใช้ ADMIN_KEY ที่ตั้งไว้ใน Apps Script<br>• CG: ใช้รหัสเฉพาะตัวที่ผู้ดูแลระบบให้ (ดูได้ที่แท็บ CG ใน Google Sheet)</p>
  <div class="form">
  <label class="full">URL ของ Web App<input id="gsU" value="${esc(c.url||'')}" placeholder="https://script.google.com/macros/s/.../exec"></label>
  <label class="full">รหัส (Key)<input id="gsK" type="password" autocomplete="off" value="${esc(c.key||'')}"></label>
@@ -374,22 +377,31 @@ async function gsConnect(){
  if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url))return er.textContent='URL ไม่ถูกต้อง ต้องขึ้นต้น https://script.google.com/ และลงท้าย /exec';
  if(!key)return er.textContent='กรุณากรอกรหัส (Key)';
  er.style.color='#64748b';er.textContent='⏳ กำลังทดสอบการเชื่อมต่อ...';
- const old={k:localStorage.getItem(GSK),s:localStorage.getItem(GSS)};
+ const old={k:localStorage.getItem(GSK),s:localStorage.getItem(GSS)},onLogin=$('#login').style.display!=='none';
  try{localStorage.setItem(GSK,JSON.stringify({url,key}));localStorage.removeItem(GSS);
-  const w=await gsCall({action:'whoami'});localStorage.setItem(GSS,JSON.stringify({cursor:0,role:w.role,cgId:w.cgId}));
+  let w;try{w=await gsCall({action:'whoami'})}catch(e){if(e.name==='TypeError'||e.name==='AbortError')throw new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบ: (1) อินเทอร์เน็ตของเครื่องนี้ (2) URL ถูกต้องและลงท้าย /exec (3) ตอน Deploy ตั้ง "Who has access" เป็น Anyone (ไม่ใช่ Anyone with Google account) แล้วกด New version');throw e}
+  localStorage.setItem(GSS,JSON.stringify({cursor:0,role:w.role,cgId:w.cgId}));
   if(w.role==='admin'&&(db.patients.length||db.cgs.length)&&confirm('ส่งข้อมูลที่มีอยู่ในเครื่องนี้ขึ้น Google Sheet ด้วยหรือไม่?\n\nตกลง = ส่งขึ้นทั้งหมด (ทำครั้งแรกครั้งเดียว)\nยกเลิก = ไม่ส่ง (ดึงข้อมูลจาก Google Sheet อย่างเดียว)'))markAllDirty();
   const e=await syncNow(true);if(e)throw new Error(e);
-  closeM();if($('#login').style.display!=='none')fillCgLogin();else refreshView(true);
+  if(onLogin){
+   load();let u;
+   if(w.role==='admin')u={role:'admin',cgId:null,name:'ผู้ดูแลระบบ (Admin)'};
+   else{const c=db.cgs.find(x=>x.id===w.cgId);if(!c)throw new Error('ไม่พบข้อมูล CG ของรหัสนี้ กรุณาแจ้งผู้ดูแลระบบ');u={role:'cg',cgId:c.id,name:c.name}}
+   currentUser=u;sessionStorage.setItem('scg_user',JSON.stringify(u));closeM();start();toast('✅ เชื่อมต่อและเข้าสู่ระบบแล้ว');return}
+  closeM();refreshView(true);
   alert('เชื่อมต่อสำเร็จ ('+(w.role==='admin'?'ผู้ดูแลระบบ':'CG: '+w.name)+')');if($('#app').style.display!=='none'&&curPage==='set')rSet()
  }catch(e){er.style.color='#dc2626';er.textContent='เชื่อมต่อไม่สำเร็จ: '+gsErr(e);
   old.k===null?localStorage.removeItem(GSK):localStorage.setItem(GSK,old.k);old.s===null?localStorage.removeItem(GSS):localStorage.setItem(GSS,old.s)}}
+function gsLink(i){const c=gsCfg(),k=i==null?null:(window._gk||[])[i],u=location.origin+location.pathname+'#gs='+encodeURIComponent(c.url)+(k?'&k='+encodeURIComponent(k.key):'');
+ const done=()=>alert(k?'คัดลอกลิงก์ของ '+k.name+' แล้ว ส่งให้ CG คนนี้เป็นการส่วนตัวเท่านั้น (ในลิงก์มีรหัสของเขารวมอยู่) เปิดลิงก์ในมือถือแล้วระบบจะเชื่อมต่อและเข้าสู่ระบบให้เอง':'คัดลอกลิงก์เชื่อมต่อแล้ว (ไม่มีรหัส ผู้ใช้ต้องกรอกรหัส Key เอง)');
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(done,()=>prompt('คัดลอกลิงก์นี้',u));else prompt('คัดลอกลิงก์นี้',u)}
 function gsCard(){const c=gsCfg(),st=gsState(),on=!!c;
  return `<div class="card"><h3>☁️ ซิงค์ข้อมูลกับ Google Sheet</h3>
  <p class="mut">${on?`เชื่อมต่อแล้ว · สิทธิ์: <b>${st.role==='admin'?'ผู้ดูแลระบบ':st.role==='cg'?'CG':'-'}</b><br>เมื่อมีการบันทึก ระบบส่งขึ้น Google Sheet อัตโนมัติ และตรวจข้อมูลใหม่ทุกประมาณ 8-10 วินาทีขณะใช้งาน (รวมถึงข้อมูลที่แก้ไขโดยตรงใน Google Sheet)<br>รูปถ่ายการเยี่ยมจะถูกอัปโหลดไปเก็บใน Google Drive ของผู้ดูแลระบบ (โฟลเดอร์ SmartCG-Photos)`:'ยังไม่ได้เชื่อมต่อ กด "เชื่อมต่อ Google Sheet" แล้วกรอก URL และรหัส (Key)'}</p>
- <div class="toolbar"><button onclick="gsModal()">⚙️ ${on?'แก้ไขการเชื่อมต่อ':'เชื่อมต่อ Google Sheet'}</button>${on?`<button class="sec" onclick="gsManual()">🔄 ซิงค์ตอนนี้</button>${st.role==='admin'?`<button class="sec" onclick="gsKeys()">🔑 ดูรหัสของ CG</button><button class="sec" onclick="gsPushAllUi()">⬆️ ส่งข้อมูลเครื่องนี้ขึ้นทั้งหมด</button>`:''}<button class="del" onclick="gsOff()">ยกเลิกการเชื่อมต่อ</button>`:''}</div></div>`}
+ <div class="toolbar"><button onclick="gsModal()">⚙️ ${on?'แก้ไขการเชื่อมต่อ':'เชื่อมต่อ Google Sheet'}</button>${on?`<button class="sec" onclick="gsManual()">🔄 ซิงค์ตอนนี้</button>${st.role==='admin'?`<button class="sec" onclick="gsKeys()">🔑 ดูรหัสของ CG</button><button class="sec" onclick="gsLink()">🔗 ลิงก์เชื่อมต่อ (ไม่มีรหัส)</button><button class="sec" onclick="gsPushAllUi()">⬆️ ส่งข้อมูลเครื่องนี้ขึ้นทั้งหมด</button>`:''}<button class="del" onclick="gsOff()">ยกเลิกการเชื่อมต่อ</button>`:''}</div></div>`}
 async function gsManual(){const e=await syncNow(true);alert(e||'ซิงค์เรียบร้อย')}
 async function gsPushAllUi(){if(!confirm('ส่งข้อมูลทั้งหมดในเครื่องนี้ขึ้น Google Sheet (รายการที่ใหม่กว่าใน Sheet จะไม่ถูกทับ) ยืนยัน?'))return;const e=await gsPushAll();alert(e||'ส่งข้อมูลเรียบร้อย')}
-async function gsKeys(){try{const r=await gsCall({action:'keys'});modal(`<h3>🔑 รหัสเข้าใช้ของ CG</h3><p class="mut" style="font-size:13px">แจ้งรหัสให้ CG แต่ละคนเป็นการส่วนตัว (แก้หรือเปลี่ยนรหัสได้ที่คอลัมน์ "รหัสเข้าใช้" ในแท็บ CG ของ Google Sheet)</p><div class="tw"><table><tr><th>ชื่อ CG</th><th>รหัส (Key)</th></tr>${r.keys.map(k=>`<tr><td>${esc(k.name)}</td><td><b style="font-family:monospace;font-size:16px">${esc(k.key)}</b></td></tr>`).join('')||'<tr><td colspan="2" class="mut">ยังไม่มี CG ใน Google Sheet</td></tr>'}</table></div><br><button onclick="closeM()">ปิด</button>`)}catch(e){alert(gsErr(e))}}
+async function gsKeys(){try{const r=await gsCall({action:'keys'});window._gk=r.keys;modal(`<h3>🔑 รหัสเข้าใช้ของ CG</h3><p class="mut" style="font-size:13px">แจ้งรหัสให้ CG แต่ละคนเป็นการส่วนตัว (แก้หรือเปลี่ยนรหัสได้ที่คอลัมน์ "รหัสเข้าใช้" ในแท็บ CG ของ Google Sheet)</p><div class="tw"><table><tr><th>ชื่อ CG</th><th>รหัส (Key)</th><th>ลิงก์เชื่อมต่อ</th></tr>${r.keys.map((k,i)=>`<tr><td>${esc(k.name)}</td><td><b style="font-family:monospace;font-size:16px">${esc(k.key)}</b></td><td><button class="sm sec" onclick="gsLink(${i})">🔗 คัดลอก</button></td></tr>`).join('')||'<tr><td colspan="3" class="mut">ยังไม่มี CG ใน Google Sheet</td></tr>'}</table></div><br><button onclick="closeM()">ปิด</button>`)}catch(e){alert(gsErr(e))}}
 function gsOff(){if(!confirm('ยกเลิกการเชื่อมต่อ Google Sheet บนเครื่องนี้? (ข้อมูลในเครื่องยังอยู่)'))return;localStorage.removeItem(GSK);localStorage.removeItem(GSS);setStatus('');rSet()}
 ['touchstart','click','keydown','scroll'].forEach(n=>document.addEventListener(n,()=>{lastAct=Date.now()},{passive:true}));
 function pollDelay(){const base=document.hidden?60000:(Date.now()-lastAct<120000?8000:30000);return Math.min(120000,base*(1+Math.min(gsFails,5)))}
@@ -411,8 +423,8 @@ function saveMyPw(){const c=db.cgs.find(x=>x.id===currentUser.cgId);if(!c)return
  if(p1.length<6)return alert('รหัสผ่านใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร');if(p1!==p2)return alert('รหัสผ่านใหม่ไม่ตรงกัน');
  c.pw=cgPwHash(c.id,p1);save();alert('เปลี่ยนรหัสผ่านเรียบร้อย');rMyPw()}
 /* ---------- LOGIN ---------- */
-function fillCgLogin(){load();fillLoginBrand();const sel=$('#lcgId');if(sel)sel.innerHTML=db.cgs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
-function toggleCgSel(val){$('#cgSelBox').style.display=val==='cg'?'block':'none';$('#lu').required=val!=='cg';$('#lu').placeholder=val==='cg'?'เว้นว่างได้ ถ้ามีรหัสผ่านส่วนตัวแล้ว':'กรอกชื่อผู้ใช้';if(val==='cg'){fillCgLogin()}}
+function fillCgLogin(){load();fillLoginBrand();const sel=$('#lcgId');if(sel)sel.innerHTML=db.cgs.length?db.cgs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join(''):`<option value="">${gsReady()?'กำลังโหลดรายชื่อ… (รอสักครู่แล้วลองใหม่)':'ยังไม่มีรายชื่อ CG ในเครื่องนี้ กดเชื่อมต่อ Google Sheet ก่อน'}</option>`}
+function toggleCgSel(val){$('#cgSelBox').style.display=val==='cg'?'block':'none';$('#lu').required=val!=='cg';$('#lu').placeholder=val==='cg'?'เว้นว่างได้ ถ้ามีรหัสผ่านส่วนตัวแล้ว':'กรอกชื่อผู้ใช้';if(val==='cg'){fillCgLogin();if(!db.cgs.length&&gsReady())syncNow().then(()=>fillCgLogin())}}
 function sha256(str){const u=new TextEncoder().encode(str),l=u.length,n=((l+9+63)>>6)<<6,w=new Uint8Array(n);w.set(u);w[l]=0x80;const dv=new DataView(w.buffer);dv.setUint32(n-4,(l*8)>>>0);dv.setUint32(n-8,Math.floor(l*8/4294967296));
  const pr=[];for(let c=2;pr.length<64;c++){let ok=true;for(let d=2;d*d<=c;d++)if(c%d===0){ok=false;break}if(ok)pr.push(c)}
  const fr=x=>Math.floor((x-Math.floor(x))*4294967296),K=pr.map(p=>fr(Math.cbrt(p)));let H=pr.slice(0,8).map(p=>fr(Math.sqrt(p)));
@@ -424,7 +436,8 @@ function sha256(str){const u=new TextEncoder().encode(str),l=u.length,n=((l+9+63
  return H.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('')}
 const hashPw=(salt,pw)=>sha256((salt||'')+':'+pw);
 function credOk(role,u,p){const S=db.settings,k=role==='admin'?'admin':'cg',user=S[k+'User']||k,pw=S[k+'Pw'];if(u!==user)return false;return pw?hashPw(S.salt,p)===pw:p===k}
-function fillLoginBrand(){const S=db.settings,e=$('#lorg');if(!e)return;e.innerHTML=`🏥 <b>${esc(S.orgName||'')}</b>${S.orgSub?`<small>${esc(S.orgSub)}</small>`:''}`}
+function fillLoginBrand(){fillLoginBrand0();const n=$('#lconn');if(n){const on=gsReady();n.className='lconn '+(on?'ok':'warn');n.textContent=on?'☁️ เครื่องนี้เชื่อมต่อ Google Sheet แล้ว':'⚠️ เครื่องนี้ยังไม่ได้เชื่อมต่อ Google Sheet — ถ้าเคยตั้งรหัสผ่านหรือเพิ่มข้อมูลไว้ในเครื่องอื่น ให้กดปุ่มเชื่อมต่อด้านล่างก่อน'}}
+function fillLoginBrand0(){const S=db.settings,e=$('#lorg');if(!e)return;e.innerHTML=`🏥 <b>${esc(S.orgName||'')}</b>${S.orgSub?`<small>${esc(S.orgSub)}</small>`:''}`}
 const cgPwHash=(id,p)=>hashPw('cg:'+id,p);
 function doLogin(e){
  e.preventDefault();load();
@@ -440,7 +453,9 @@ function doLogin(e){
 function logout(){sessionStorage.removeItem('scg_user');location.reload()}
 function start(){const s=sessionStorage.getItem('scg_user');if(!s)return;try{currentUser=JSON.parse(s)}catch(e){return logout()}
  $('#login').style.display='none';$('#app').style.display='flex';load();$('#userRoleBadge').textContent=currentUser.name;if(currentUser.role==='cg')state.cg=currentUser.cgId;go('dash')}
-window.onload=async()=>{load();migratePhotos();if(gsReady())await Promise.race([syncNow(),new Promise(r=>setTimeout(r,8000))]);fillCgLogin();if(sessionStorage.getItem('scg_user'))start()};
+window.onload=async()=>{load();migratePhotos();
+ {const hp=new URLSearchParams(location.hash.replace(/^#/,'')),lu=hp.get('gs'),lk=hp.get('k');if(lu){history.replaceState(null,'',location.pathname+location.search);setTimeout(()=>{gsModal();$('#gsU').value=lu;if(lk){$('#gsK').value=lk;gsConnect()}},50)}}
+ if(gsReady())await Promise.race([syncNow(),new Promise(r=>setTimeout(r,8000))]);fillCgLogin();if(sessionStorage.getItem('scg_user'))start()};
 
 const PAGES={
  dash:['🏠 แดชบอร์ด',()=>rDash(),['admin','cg']],
