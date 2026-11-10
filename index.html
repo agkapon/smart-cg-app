@@ -118,6 +118,27 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 .lbox button.lconnb{width:100%;margin-top:10px;background:#fff;color:#8b6447;border:1.5px solid #8b6447}.lbox button.lconnb:hover{background:#faf6f1}
 .lfoot{text-align:center;color:#fff;font-size:13px;line-height:1.7;padding:4px 10px;text-shadow:0 1px 3px #0004}
 .lfoot:before{content:"";display:block;width:60px;height:2px;background:#ffffff77;border-radius:2px;margin:0 auto 12px}
+/* ===== CG DASHBOARD / SCREENING ===== */
+.pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.pcard{background:#fff;border-radius:20px;border:1px solid #e5e7eb;border-top:4px solid var(--c);overflow:hidden;box-shadow:0 2px 10px #0000000d}
+.pch{padding:16px;display:flex;gap:12px;align-items:center;background:var(--bg)}
+.pch b{font-size:17px;display:block}.pch small{display:block;color:#475569;margin-top:2px}
+.pav{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,var(--c),var(--c2));display:grid;place-items:center;font-size:26px;flex-shrink:0;color:#fff}
+.pcb{padding:14px 16px 16px;display:grid;gap:10px}
+.pbtn{display:block;width:100%;border-radius:12px;padding:12px;color:#fff;font-weight:700;text-align:center;background:var(--c);font-size:15px}
+.pbtn span{display:block;font-weight:600;font-size:13px;margin-top:3px;opacity:.95}
+.pbtn.red{background:#c81e3a}.pbtn.red:hover{background:#a8182f}.pbtn.ok{background:#15803d}.pbtn.ok:hover{background:#166534}
+.pchip{background:#fef3c7;color:#92400e;border-radius:12px;padding:8px 12px;font-weight:600;font-size:14px}.pchip.ok{background:#dcfce7;color:#166534}
+.scrg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.scrc{border:1px solid #e5e7eb;border-radius:16px;padding:14px;background:linear-gradient(135deg,var(--bg),#fff)}
+.scrc .sh{display:flex;gap:10px;align-items:center;margin-bottom:10px;font-weight:700;color:var(--c)}
+.sic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:17px;background:linear-gradient(135deg,var(--c),var(--c2));flex-shrink:0}
+.scrc select{background:#fff;border-radius:10px}
+.mfoot{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid #ece7e1}
+.dsec{background:#faf8f5;border:1px solid #e7e0db;border-radius:12px;padding:12px 14px}.dsec>summary{cursor:pointer;font-weight:700;color:var(--br);font-size:16px}
+.lconn-link{text-align:center;font-size:12px;margin-top:10px}.lconn-link a{color:#8b6447}
+@media(max-width:700px){.scrg{grid-template-columns:1fr}.kpis[style]{grid-template-columns:repeat(3,1fr)!important}}
+@media print{body.pm>*:not(#modal){display:none!important}body.pm #modal{position:static;background:none;display:block!important;padding:0}body.pm #modal .box{max-height:none;box-shadow:none;max-width:none}}
 /* ===== MAP / HISTORY / DETAIL ===== */
 .mtabs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#f1ece6;border-radius:14px;padding:6px;margin:16px 0}
 .mtab{background:transparent;color:#5c4030;border-radius:10px;padding:9px 14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;width:auto}
@@ -191,10 +212,10 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 <option value="admin">ผู้ดูแลระบบ (Admin)</option>
 <option value="cg">อาสาสมัครดูแลผู้สูงอายุ (CG)</option>
 </select></label>
-<div id="cgSelBox" style="display:none"><label>เลือกชื่อ CG ของท่าน<select id="lcgId"></select></label></div>
+<div id="cgSelBox" style="display:none"><label>เลือกชื่อ CG ของท่าน<select id="lcgId"></select></label><div id="lkeyhint" class="mut" style="font-size:12px;margin:-4px 0 6px"></div></div>
 <label>ชื่อผู้ใช้<input id="lu" autocomplete="username" required placeholder="กรอกชื่อผู้ใช้"></label>
 <label>รหัสผ่าน<input id="lp" type="password" autocomplete="current-password" required placeholder="กรอกรหัสผ่าน"></label>
-<div id="lerr" class="err"></div><button style="width:100%;margin-top:14px">เข้าสู่ระบบ</button><button type="button" class="lconnb" onclick="gsModal()">☁️ เชื่อมต่อเครื่องนี้กับ Google Sheet</button></form>
+<div id="lerr" class="err"></div><button style="width:100%;margin-top:14px">เข้าสู่ระบบ</button></form>
 <div class="lfoot">พัฒนาโดย <b>นายเอกพล อาจโยธา</b> ผอ.รพ.สต.บ้านห้วยอาลัย</div>
 </div></div>
 
@@ -204,7 +225,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
     <div id="nav"></div>
   </nav>
   <main class="main" id="main"></main>
-  <footer class="footer">พัฒนาโดย นายเอกพล อาจโยธา ผอ.รพ.สต.บ้านห้วยอาลัย<br><small id="syncSt"></small></footer>
+  <footer class="footer">พัฒนาโดย นายเอกพล อาจโยธา ผอ.รพ.สต.บ้านห้วยอาลัย</footer>
 </div>
 <div id="modal" onclick="if(event.target===this)closeM()"></div>
 
@@ -273,7 +294,7 @@ function seed(){const d={cgs:[],patients:[],adl:[],tai:[],visits:[],schedules:{}
   ps.split(';').forEach(s=>{const [n,m,g,a]=s.split(',');moos.add(m);d.patients.push({id:uid(),name:n.trim(),cid:'',birth:'',sex:guessSex(n.trim()),moo:m,address:'',lat:'',lng:'',phone:'',disease:'',adl:+a,tai:'',group:+g,cgId:c.id,relative:'',relPhone:'',status:'active'})});
   c.area='หมู่ '+[...moos].join(', ')});return d}
 function save(){stampNeeded=true;stamp();try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){alert('หน่วยความจำเต็ม กรุณาลบบันทึกเก่าบางส่วน');return false}if(gsReady())syncSoon();return true}
-function load(){try{db=JSON.parse(localStorage.getItem(KEY))}catch(e){db=null}if(!db||!db.patients||!db.cgs){db=seed();save()}db.settings=Object.assign({orgName:'โรงพยาบาลส่งเสริมสุขภาพตำบล',orgSub:'',defAddr:'',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});['adl','tai','visits'].forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{}}
+function load(){try{db=JSON.parse(localStorage.getItem(KEY))}catch(e){db=null}if(!db||!db.patients||!db.cgs){db=seed();save()}db.settings=Object.assign({orgName:'โรงพยาบาลส่งเสริมสุขภาพตำบล',orgSub:'',defAddr:'',visitHrs:2,dutyHrs:8,weekend:false,holidays:''},db.settings||{});['adl','tai','scr','visits'].forEach(k=>db[k]=db[k]||[]);db.schedules=db.schedules||{};db.del=db.del||{}}
 
 /* ---------- GOOGLE SHEET SYNC ---------- */
 var curPage='dash',gsBusy=false,gsAgain=false,gsTimer=null,gsStatus='',gsFails=0,stampNeeded=true,lastAct=Date.now(),pollT=null,_phMem={};
@@ -283,8 +304,9 @@ async function phGet(k){const d=await _idb;if(!d)return _phMem[k]||null;return n
 async function vLocal(v,i){if(v.photos&&v.photos[i])return v.photos[i];if(v.photo&&i===0)return v.photo;return phGet(v.id+':'+i)}
 async function migratePhotos(){let n=0;for(const v of db.visits){const arr=v.photos||(v.photo?[v.photo]:[]);if(!arr.length)continue;let ok=true;for(let i=0;i<arr.length;i++)if(!await phPut(v.id+':'+i,arr[i]))ok=false;if(ok){v.nLocal=arr.length;delete v.photos;delete v.photo;n++}}if(n)persist()}
 function toast(msg,fn){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#3b2a1f;color:#fff;padding:10px 16px;border-radius:24px;font-size:14px;z-index:400;box-shadow:0 6px 20px #0005;cursor:pointer;max-width:90vw;text-align:center';document.body.appendChild(t)}t.textContent=msg;t.style.display='block';t.onclick=()=>{t.style.display='none';fn&&fn()};clearTimeout(t._h);t._h=setTimeout(()=>{t.style.display='none'},9000)}
-const GSK='smartcg_gs',GSS='smartcg_gs_state';
-const COLS=['cgs','patients','adl','tai','visits'];
+const GSK='smartcg_gs',GSS='smartcg_gs_state',GSU='smartcg_gs_url';
+const gsUrl=()=>(gsCfg()||{}).url||localStorage.getItem(GSU)||'';
+const COLS=['cgs','patients','adl','tai','scr','visits'];
 const ALLC=[...COLS,'schedules','settings'];
 const hm=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
 function gsCfg(){try{const c=JSON.parse(localStorage.getItem(GSK));return c&&c.url&&c.key?c:null}catch(e){return null}}
@@ -319,7 +341,7 @@ function applyRows(rows){let n=0,sets=false;const H=c=>(db._h[c]=db._h[c]||{});
 function enrich(c,d,r){
  if(c==='patients')d.cgName=cgName(r.cgId);
  if(c==='visits'){d.pName=(P(r.pid)||{}).name||'';d.cgName=cgName(r.cgId);d.nPhotos=Math.max((r.photos||(r.photo?[r.photo]:[])).length,r.nLocal||0,(r.photoIds||[]).length,+r.nPhotos||0)}
- if(c==='adl'||c==='tai')d.pName=(P(r.pid)||{}).name||'';
+ if(c==='adl'||c==='tai'||c==='scr')d.pName=(P(r.pid)||{}).name||'';
  if(c==='schedules')d.month=r.id||''}
 function buildDirty(){const out=[],keys=[];
  for(const key in db._d){const i=key.indexOf(':'),c=key.slice(0,i),id=key.slice(i+1),r=recMap(db,c)[id],tomb=db.del[key];
@@ -328,7 +350,7 @@ function buildDirty(){const out=[],keys=[];
   else delete db._d[key]}
  return{out,keys}}
 
-async function gsCall(body){const c=gsCfg(),ac=new AbortController(),tm=setTimeout(()=>ac.abort(),40000);
+async function gsCall(body,cfgo){const c=cfgo||gsCfg(),ac=new AbortController(),tm=setTimeout(()=>ac.abort(),40000);
  try{const r=await fetch(c.url,{method:'POST',body:JSON.stringify(Object.assign({key:c.key},body)),signal:ac.signal});
   if(!r.ok)throw new Error('เซิร์ฟเวอร์ตอบกลับผิดพลาด ('+r.status+')');
   let j;try{j=await r.json()}catch(e){throw new Error('ตอบกลับไม่ถูกต้อง ตรวจว่า URL เป็นของ Web App (ลงท้าย /exec) และตั้งสิทธิ์เป็น "Anyone"')}
@@ -336,6 +358,9 @@ async function gsCall(body){const c=gsCfg(),ac=new AbortController(),tm=setTimeo
 
 async function uploadPhotos(){let n=0;for(const v of db.visits){const nl=Math.max((v.photos||(v.photo?[v.photo]:[])).length,v.nLocal||0);if(!nl)continue;const ids=v.photoIds||[];if(ids.length>=nl)continue;
   for(let i=ids.length;i<nl;i++){const src=await vLocal(v,i);if(!src)break;const r=await gsCall({action:'upphoto',vid:v.id,idx:i,data:src});ids[i]=r.id;v.photoIds=ids;stampNeeded=true;n++;persist()}}return n}
+function keyRevoked(){const c=gsCfg();if(!c)return;const st=gsState();
+ if(st.role==='cg'){localStorage.setItem(GSU,c.url);localStorage.removeItem(GSK);if(typeof currentUser!=='undefined'&&currentUser&&currentUser.role==='cg'&&$('#app')&&$('#app').style.display!=='none'){alert('รหัสเข้าใช้ (Key) ของคุณถูกเปลี่ยนหรือถูกยกเลิก\nกรุณาเข้าสู่ระบบใหม่ด้วยรหัสใหม่จากผู้ดูแลระบบ');logout()}}
+ else setStatus('⚠️ รหัส (Key) ไม่ถูกต้อง กรุณาตรวจสอบ ADMIN_KEY ในการตั้งค่าเชื่อมต่อ','#dc2626')}
 async function syncNow(manual){
  if(!gsCfg()||!db)return '';
  if(gsBusy){gsAgain=true;return ''}
@@ -352,6 +377,7 @@ async function syncNow(manual){
   if(rej)err='มี '+rej+' รายการที่เซิร์ฟเวอร์ไม่รับ (ไม่มีสิทธิ์หรือข้อมูลใหญ่เกินไป)'
  }catch(e){err=gsErr(e)}
  gsBusy=false;
+ if(/รหัส \(Key\) ไม่ถูกต้อง/.test(err))keyRevoked();
  err?setStatus('⚠️ '+err,'#dc2626'):setStatus('☁️ ซิงค์แล้ว '+hm(),'#059669');
  gsFails=err?gsFails+1:0;
  if(applied){const lg=$('#login');if(lg&&lg.style.display!=='none')fillCgLogin();if(!refreshView())toast('🔄 มีข้อมูลใหม่จากเครื่องอื่น แตะเพื่อรีเฟรช',()=>{if(PAGES[curPage])go(curPage)})}
@@ -378,7 +404,7 @@ async function gsConnect(){
  if(!key)return er.textContent='กรุณากรอกรหัส (Key)';
  er.style.color='#64748b';er.textContent='⏳ กำลังทดสอบการเชื่อมต่อ...';
  const old={k:localStorage.getItem(GSK),s:localStorage.getItem(GSS)},onLogin=$('#login').style.display!=='none';
- try{localStorage.setItem(GSK,JSON.stringify({url,key}));localStorage.removeItem(GSS);
+ try{localStorage.setItem(GSK,JSON.stringify({url,key}));localStorage.setItem(GSU,url);localStorage.removeItem(GSS);
   let w;try{w=await gsCall({action:'whoami'})}catch(e){if(e.name==='TypeError'||e.name==='AbortError')throw new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบ: (1) อินเทอร์เน็ตของเครื่องนี้ (2) URL ถูกต้องและลงท้าย /exec (3) ตอน Deploy ตั้ง "Who has access" เป็น Anyone (ไม่ใช่ Anyone with Google account) แล้วกด New version');throw e}
   localStorage.setItem(GSS,JSON.stringify({cursor:0,role:w.role,cgId:w.cgId}));
   if(w.role==='admin'&&(db.patients.length||db.cgs.length)&&confirm('ส่งข้อมูลที่มีอยู่ในเครื่องนี้ขึ้น Google Sheet ด้วยหรือไม่?\n\nตกลง = ส่งขึ้นทั้งหมด (ทำครั้งแรกครั้งเดียว)\nยกเลิก = ไม่ส่ง (ดึงข้อมูลจาก Google Sheet อย่างเดียว)'))markAllDirty();
@@ -392,39 +418,31 @@ async function gsConnect(){
   alert('เชื่อมต่อสำเร็จ ('+(w.role==='admin'?'ผู้ดูแลระบบ':'CG: '+w.name)+')');if($('#app').style.display!=='none'&&curPage==='set')rSet()
  }catch(e){er.style.color='#dc2626';er.textContent='เชื่อมต่อไม่สำเร็จ: '+gsErr(e);
   old.k===null?localStorage.removeItem(GSK):localStorage.setItem(GSK,old.k);old.s===null?localStorage.removeItem(GSS):localStorage.setItem(GSS,old.s)}}
+async function gsSetKey(i){const k=(window._gk||[])[i];if(!k)return;const v=prompt('ตั้งรหัสเข้าใช้ (Key) ใหม่ของ '+k.name+'\n(อย่างน้อย 6 ตัวอักษร ห้ามมีช่องว่าง ห้ามซ้ำกับ CG คนอื่น)',k.key);if(v===null)return;
+ try{await gsCall({action:'setkey',id:k.id,newKey:v.trim()});alert('ตั้งรหัสใหม่ของ '+k.name+' แล้ว (CG ต้องเข้าสู่ระบบใหม่ด้วยรหัสนี้)');gsKeys()}catch(e){alert(gsErr(e))}}
 function gsLink(i){const c=gsCfg(),k=i==null?null:(window._gk||[])[i],u=location.origin+location.pathname+'#gs='+encodeURIComponent(c.url)+(k?'&k='+encodeURIComponent(k.key):'');
  const done=()=>alert(k?'คัดลอกลิงก์ของ '+k.name+' แล้ว ส่งให้ CG คนนี้เป็นการส่วนตัวเท่านั้น (ในลิงก์มีรหัสของเขารวมอยู่) เปิดลิงก์ในมือถือแล้วระบบจะเชื่อมต่อและเข้าสู่ระบบให้เอง':'คัดลอกลิงก์เชื่อมต่อแล้ว (ไม่มีรหัส ผู้ใช้ต้องกรอกรหัส Key เอง)');
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(done,()=>prompt('คัดลอกลิงก์นี้',u));else prompt('คัดลอกลิงก์นี้',u)}
 function gsCard(){const c=gsCfg(),st=gsState(),on=!!c;
  return `<div class="card"><h3>☁️ ซิงค์ข้อมูลกับ Google Sheet</h3>
- <p class="mut">${on?`เชื่อมต่อแล้ว · สิทธิ์: <b>${st.role==='admin'?'ผู้ดูแลระบบ':st.role==='cg'?'CG':'-'}</b><br>เมื่อมีการบันทึก ระบบส่งขึ้น Google Sheet อัตโนมัติ และตรวจข้อมูลใหม่ทุกประมาณ 8-10 วินาทีขณะใช้งาน (รวมถึงข้อมูลที่แก้ไขโดยตรงใน Google Sheet)<br>รูปถ่ายการเยี่ยมจะถูกอัปโหลดไปเก็บใน Google Drive ของผู้ดูแลระบบ (โฟลเดอร์ SmartCG-Photos)`:'ยังไม่ได้เชื่อมต่อ กด "เชื่อมต่อ Google Sheet" แล้วกรอก URL และรหัส (Key)'}</p>
+ <p class="mut">${on?`เชื่อมต่อแล้ว · สิทธิ์: <b>${st.role==='admin'?'ผู้ดูแลระบบ':st.role==='cg'?'CG':'-'}</b><br>เมื่อมีการบันทึก ระบบส่งขึ้น Google Sheet อัตโนมัติ และซิงค์อัตโนมัติ<b>เฉพาะเมื่อมีการบันทึกข้อมูล</b> (ส่งขึ้นและดึงข้อมูลล่าสุดพร้อมกัน) และเมื่อเปิดแอป/เข้าสู่ระบบ ต้องการดึงข้อมูลล่าสุดทันทีให้กด "ซิงค์ตอนนี้" หรือปุ่ม 🔄 ในหน้าแดชบอร์ด<br>รูปถ่ายการเยี่ยมจะถูกอัปโหลดไปเก็บใน Google Drive ของผู้ดูแลระบบ (โฟลเดอร์ SmartCG-Photos)`:'ยังไม่ได้เชื่อมต่อ กด "เชื่อมต่อ Google Sheet" แล้วกรอก URL และรหัส (Key)'}</p>
+ <div id="syncSt" style="font-weight:600;margin:0 0 8px;color:#475569">${esc(gsStatus)}</div>
  <div class="toolbar"><button onclick="gsModal()">⚙️ ${on?'แก้ไขการเชื่อมต่อ':'เชื่อมต่อ Google Sheet'}</button>${on?`<button class="sec" onclick="gsManual()">🔄 ซิงค์ตอนนี้</button>${st.role==='admin'?`<button class="sec" onclick="gsKeys()">🔑 ดูรหัสของ CG</button><button class="sec" onclick="gsLink()">🔗 ลิงก์เชื่อมต่อ (ไม่มีรหัส)</button><button class="sec" onclick="gsPushAllUi()">⬆️ ส่งข้อมูลเครื่องนี้ขึ้นทั้งหมด</button>`:''}<button class="del" onclick="gsOff()">ยกเลิกการเชื่อมต่อ</button>`:''}</div></div>`}
 async function gsManual(){const e=await syncNow(true);alert(e||'ซิงค์เรียบร้อย')}
 async function gsPushAllUi(){if(!confirm('ส่งข้อมูลทั้งหมดในเครื่องนี้ขึ้น Google Sheet (รายการที่ใหม่กว่าใน Sheet จะไม่ถูกทับ) ยืนยัน?'))return;const e=await gsPushAll();alert(e||'ส่งข้อมูลเรียบร้อย')}
-async function gsKeys(){try{const r=await gsCall({action:'keys'});window._gk=r.keys;modal(`<h3>🔑 รหัสเข้าใช้ของ CG</h3><p class="mut" style="font-size:13px">แจ้งรหัสให้ CG แต่ละคนเป็นการส่วนตัว (แก้หรือเปลี่ยนรหัสได้ที่คอลัมน์ "รหัสเข้าใช้" ในแท็บ CG ของ Google Sheet)</p><div class="tw"><table><tr><th>ชื่อ CG</th><th>รหัส (Key)</th><th>ลิงก์เชื่อมต่อ</th></tr>${r.keys.map((k,i)=>`<tr><td>${esc(k.name)}</td><td><b style="font-family:monospace;font-size:16px">${esc(k.key)}</b></td><td><button class="sm sec" onclick="gsLink(${i})">🔗 คัดลอก</button></td></tr>`).join('')||'<tr><td colspan="3" class="mut">ยังไม่มี CG ใน Google Sheet</td></tr>'}</table></div><br><button onclick="closeM()">ปิด</button>`)}catch(e){alert(gsErr(e))}}
-function gsOff(){if(!confirm('ยกเลิกการเชื่อมต่อ Google Sheet บนเครื่องนี้? (ข้อมูลในเครื่องยังอยู่)'))return;localStorage.removeItem(GSK);localStorage.removeItem(GSS);setStatus('');rSet()}
-['touchstart','click','keydown','scroll'].forEach(n=>document.addEventListener(n,()=>{lastAct=Date.now()},{passive:true}));
-function pollDelay(){const base=document.hidden?60000:(Date.now()-lastAct<120000?8000:30000);return Math.min(120000,base*(1+Math.min(gsFails,5)))}
-function schedPoll(){clearTimeout(pollT);pollT=setTimeout(async()=>{if(!document.hidden&&gsReady())await syncNow();schedPoll()},pollDelay())}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastAct=Date.now();syncNow();schedPoll()}});
-schedPoll();
-window.addEventListener('online',()=>syncNow());
+async function gsKeys(){try{const r=await gsCall({action:'keys'});window._gk=r.keys;modal(`<h3>🔑 รหัสเข้าใช้ของ CG</h3><p class="mut" style="font-size:13px">รหัสนี้คือ <b>รหัสผ่านที่ CG ใช้เข้าแอป</b> ตั้งหรือเปลี่ยนได้ที่นี่ หรือแก้ตรงคอลัมน์ "รหัสเข้าใช้ (Key)" ในแท็บ CG ของ Google Sheet (อย่างน้อย 6 ตัวอักษร ห้ามซ้ำกัน) เมื่อเปลี่ยนรหัส CG คนนั้นต้องเข้าสู่ระบบใหม่ด้วยรหัสใหม่</p><div class="tw"><table><tr><th>ชื่อ CG</th><th>รหัส (Key)</th><th>จัดการ</th></tr>${r.keys.map((k,i)=>`<tr><td>${esc(k.name)}</td><td><b style="font-family:monospace;font-size:16px">${esc(k.key)}</b></td><td><button class="sm sec" onclick="gsSetKey(${i})">✏️ ตั้งรหัส</button> <button class="sm sec" onclick="gsLink(${i})">🔗 ลิงก์</button></td></tr>`).join('')||'<tr><td colspan="3" class="mut">ยังไม่มี CG ใน Google Sheet</td></tr>'}</table></div><br><button onclick="closeM()">ปิด</button>`)}catch(e){alert(gsErr(e))}}
+function gsOff(){if(!confirm('ยกเลิกการเชื่อมต่อ Google Sheet บนเครื่องนี้? (ข้อมูลในเครื่องยังอยู่)'))return;localStorage.removeItem(GSK);localStorage.removeItem(GSS);localStorage.removeItem(GSU);setStatus('');rSet()}
+window.addEventListener('online',()=>{if(gsReady()&&db&&Object.keys(db._d||{}).length)syncNow()});
 
-function credCard(){const S=db.settings;return `<div class="card"><h3>🔐 ผู้ใช้งานและรหัสผ่านเข้าระบบ</h3><p class="mut" style="margin-top:0">${!S.adminPw?'<b style="color:#dc2626">⚠️ ขณะนี้ผู้ดูแลระบบยังใช้รหัสผ่านเริ่มต้น (admin / admin) กรุณาเปลี่ยน</b><br>':''}${!S.cgPw?'รหัสกลางของ CG ยังเป็นค่าเริ่มต้น (cg / cg) ':''}รหัสผ่านจะถูกเก็บแบบเข้ารหัส (SHA-256) เว้นช่องรหัสผ่านไว้ = ไม่เปลี่ยน</p><div class="form"><label>ชื่อผู้ใช้ผู้ดูแลระบบ<input id="c1" value="${esc(S.adminUser||'admin')}"></label><label>รหัสผ่านใหม่ของผู้ดูแลระบบ<input id="c2" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label><label>ชื่อผู้ใช้ของรหัสกลาง CG<input id="c3" value="${esc(S.cgUser||'cg')}"></label><label>รหัสผ่านกลางของ CG (ใช้เมื่อ CG ยังไม่ตั้งรหัสส่วนตัว)<input id="c4" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label></div><br><button onclick="saveCred()">💾 บันทึกรหัสผ่าน</button></div>`}
+function credCard(){const S=db.settings;return `<div class="card"><h3>🔐 ผู้ใช้งานและรหัสผ่านเข้าระบบ</h3><p class="mut" style="margin-top:0">${!S.adminPw?'<b style="color:#dc2626">⚠️ ขณะนี้ผู้ดูแลระบบยังใช้รหัสผ่านเริ่มต้น (admin / admin) กรุณาเปลี่ยน</b><br>':''}${!S.cgPw?'รหัสกลางของ CG ยังเป็นค่าเริ่มต้น (cg / cg) ใช้เฉพาะเมื่อไม่ได้เชื่อมต่อ Google Sheet เมื่อเชื่อมต่อแล้ว CG ใช้ "รหัสเข้าใช้ (Key)" ในแท็บ CG ของ Google Sheet เป็นรหัสผ่าน ':''}รหัสผ่านจะถูกเก็บแบบเข้ารหัส (SHA-256) เว้นช่องรหัสผ่านไว้ = ไม่เปลี่ยน</p><div class="form"><label>ชื่อผู้ใช้ผู้ดูแลระบบ<input id="c1" value="${esc(S.adminUser||'admin')}"></label><label>รหัสผ่านใหม่ของผู้ดูแลระบบ<input id="c2" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label><label>ชื่อผู้ใช้ของรหัสกลาง CG (โหมดไม่เชื่อมต่อ)<input id="c3" value="${esc(S.cgUser||'cg')}"></label><label>รหัสผ่านกลางของ CG (ใช้เฉพาะเมื่อไม่ได้เชื่อมต่อ Google Sheet)<input id="c4" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label></div><br><button onclick="saveCred()">💾 บันทึกรหัสผ่าน</button></div>`}
 function saveCred(){const S=db.settings,au=$('#c1').value.trim(),cu=$('#c3').value.trim(),ap=$('#c2').value,cp=$('#c4').value;
  if(!au||!cu)return alert('กรุณากรอกชื่อผู้ใช้ทั้งสองช่อง');if((ap&&ap.length<6)||(cp&&cp.length<6))return alert('รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร');
  S.salt=S.salt||uid();S.adminUser=au;S.cgUser=cu;if(ap)S.adminPw=hashPw(S.salt,ap);if(cp)S.cgPw=hashPw(S.salt,cp);
 save();alert('บันทึกแล้ว');rSet()}
 function onboard(){if(currentUser.role!=='admin'||db.cgs.length||db.patients.length)return '';return `<div class="card" style="border-left:5px solid #8b6447"><h3>👋 ยินดีต้อนรับสู่ระบบเยี่ยมบ้านผู้ป่วย LTC</h3><p style="margin-top:0">เริ่มต้นใช้งานสำหรับ รพ.สต. ของท่านตามลำดับนี้</p><ol style="line-height:2.2;padding-left:20px"><li>ตั้งชื่อ รพ.สต. พื้นที่ และพิกัดหน่วยบริการ <button class="sm" onclick="go('set')">ไปที่ตั้งค่า</button></li><li>เปลี่ยนรหัสผ่านเข้าระบบ <button class="sm sec" onclick="go('set')">ไปที่ตั้งค่า</button></li><li>เพิ่มรายชื่อ CG <button class="sm" onclick="go('cgs')">ผู้ดูแล (CG)</button></li><li>เพิ่มผู้สูงอายุ/ผู้ป่วย แล้วมอบหมายให้ CG <button class="sm" onclick="go('patients')">ทะเบียนผู้ป่วย</button></li><li>ให้ CG ใช้งานจากมือถือ: ตั้งค่า &gt; เชื่อมต่อ Google Sheet ของ รพ.สต. ตนเอง</li></ol></div>`}
-function rMyPw(){const c=db.cgs.find(x=>x.id===currentUser.cgId);
- M(`<h2>🔑 รหัสผ่านของฉัน</h2><div class="card" style="max-width:480px"><p class="mut" style="margin-top:0">${c&&c.pw?'คุณตั้งรหัสผ่านส่วนตัวไว้แล้ว สามารถเปลี่ยนได้ที่นี่':'ตอนนี้ยังใช้รหัสกลาง แนะนำให้ตั้งรหัสผ่านส่วนตัวของคุณเอง'}</p><div class="form" style="grid-template-columns:1fr">${c&&c.pw?'<label>รหัสผ่านปัจจุบัน<input id="mp0" type="password" autocomplete="current-password"></label>':''}<label>รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)<input id="mp1" type="password" autocomplete="new-password"></label><label>ยืนยันรหัสผ่านใหม่<input id="mp2" type="password" autocomplete="new-password"></label></div><br><button onclick="saveMyPw()">💾 บันทึกรหัสผ่าน</button></div>`)}
-function saveMyPw(){const c=db.cgs.find(x=>x.id===currentUser.cgId);if(!c)return;const p1=$('#mp1').value,p2=$('#mp2').value;
- if(c.pw&&cgPwHash(c.id,$('#mp0').value)!==c.pw)return alert('รหัสผ่านปัจจุบันไม่ถูกต้อง');
- if(p1.length<6)return alert('รหัสผ่านใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร');if(p1!==p2)return alert('รหัสผ่านใหม่ไม่ตรงกัน');
- c.pw=cgPwHash(c.id,p1);save();alert('เปลี่ยนรหัสผ่านเรียบร้อย');rMyPw()}
 /* ---------- LOGIN ---------- */
 function fillCgLogin(){load();fillLoginBrand();const sel=$('#lcgId');if(sel)sel.innerHTML=db.cgs.length?db.cgs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join(''):`<option value="">${gsReady()?'กำลังโหลดรายชื่อ… (รอสักครู่แล้วลองใหม่)':'ยังไม่มีรายชื่อ CG ในเครื่องนี้ กดเชื่อมต่อ Google Sheet ก่อน'}</option>`}
-function toggleCgSel(val){$('#cgSelBox').style.display=val==='cg'?'block':'none';$('#lu').required=val!=='cg';$('#lu').placeholder=val==='cg'?'เว้นว่างได้ ถ้ามีรหัสผ่านส่วนตัวแล้ว':'กรอกชื่อผู้ใช้';if(val==='cg'){fillCgLogin();if(!db.cgs.length&&gsReady())syncNow().then(()=>fillCgLogin())}}
+function toggleCgSel(val){$('#cgSelBox').style.display=val==='cg'?'block':'none';$('#lu').required=val!=='cg';$('#lu').placeholder=val==='cg'?(gsUrl()?'ไม่ต้องกรอก':'ชื่อผู้ใช้รหัสกลาง'):'กรอกชื่อผู้ใช้';$('#lkeyhint').textContent=(val==='cg'&&gsUrl())?'🔑 รหัสผ่านคือ "รหัสเข้าใช้ (Key)" ที่ผู้ดูแลระบบตั้งไว้ใน Google Sheet':'';if(val==='cg'){fillCgLogin();if(!db.cgs.length&&gsReady())syncNow().then(()=>fillCgLogin())}}
 function sha256(str){const u=new TextEncoder().encode(str),l=u.length,n=((l+9+63)>>6)<<6,w=new Uint8Array(n);w.set(u);w[l]=0x80;const dv=new DataView(w.buffer);dv.setUint32(n-4,(l*8)>>>0);dv.setUint32(n-8,Math.floor(l*8/4294967296));
  const pr=[];for(let c=2;pr.length<64;c++){let ok=true;for(let d=2;d*d<=c;d++)if(c%d===0){ok=false;break}if(ok)pr.push(c)}
  const fr=x=>Math.floor((x-Math.floor(x))*4294967296),K=pr.map(p=>fr(Math.cbrt(p)));let H=pr.slice(0,8).map(p=>fr(Math.sqrt(p)));
@@ -436,20 +454,29 @@ function sha256(str){const u=new TextEncoder().encode(str),l=u.length,n=((l+9+63
  return H.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('')}
 const hashPw=(salt,pw)=>sha256((salt||'')+':'+pw);
 function credOk(role,u,p){const S=db.settings,k=role==='admin'?'admin':'cg',user=S[k+'User']||k,pw=S[k+'Pw'];if(u!==user)return false;return pw?hashPw(S.salt,p)===pw:p===k}
-function fillLoginBrand(){fillLoginBrand0();const n=$('#lconn');if(n){const on=gsReady();n.className='lconn '+(on?'ok':'warn');n.textContent=on?'☁️ เครื่องนี้เชื่อมต่อ Google Sheet แล้ว':'⚠️ เครื่องนี้ยังไม่ได้เชื่อมต่อ Google Sheet — ถ้าเคยตั้งรหัสผ่านหรือเพิ่มข้อมูลไว้ในเครื่องอื่น ให้กดปุ่มเชื่อมต่อด้านล่างก่อน'}}
+function fillLoginBrand(){fillLoginBrand0();const n=$('#lconn');if(n){n.className='lconn-link';n.innerHTML=gsUrl()?'':'<a href="#" onclick="gsModal();return false">เครื่องใหม่? เชื่อมต่อ Google Sheet</a>'}}
 function fillLoginBrand0(){const S=db.settings,e=$('#lorg');if(!e)return;e.innerHTML=`🏥 <b>${esc(S.orgName||'')}</b>${S.orgSub?`<small>${esc(S.orgSub)}</small>`:''}`}
-const cgPwHash=(id,p)=>hashPw('cg:'+id,p);
-function doLogin(e){
+async function cgKeyLogin(url,key,c){
+ const cfg=gsCfg(),st=gsState();
+ if(cfg&&cfg.key===key&&st.cgId===c.id)return {ok:true};
+ try{const w=await gsCall({action:'whoami'},{url,key});
+  if(w.role!=='cg'||w.cgId!==c.id)return {err:'รหัสนี้ไม่ใช่ของ '+c.name};
+  localStorage.setItem(GSK,JSON.stringify({url,key}));localStorage.setItem(GSU,url);
+  if(!localStorage.getItem(GSS))localStorage.setItem(GSS,JSON.stringify({cursor:0,role:'cg',cgId:c.id}));
+  return {ok:true}
+ }catch(e){const m=gsErr(e);return {err:/รหัส \(Key\)/.test(m)?'รหัสผ่านไม่ถูกต้อง (ใช้รหัสเข้าใช้ Key ที่ผู้ดูแลระบบตั้งไว้ใน Google Sheet)':'ตรวจรหัสไม่ได้ '+m}}}
+async function doLogin(e){
  e.preventDefault();load();
  const role=$('#lrole').value,u=$('#lu').value.trim(),p=$('#lp').value;$('#lerr').textContent='';const bad=m=>{$('#lerr').textContent=m};
  if(role==='admin'){if(!credOk('admin',u,p))return bad('ชื่อผู้ใช้หรือรหัสผ่านผู้ดูแลระบบไม่ถูกต้อง');currentUser={role:'admin',cgId:null,name:'ผู้ดูแลระบบ (Admin)'}}
  else{const c=db.cgs.find(x=>x.id===$('#lcgId').value);if(!c)return bad('กรุณาเลือกชื่อ CG');
-  const ok=c.pw?cgPwHash(c.id,p)===c.pw:!!(u&&credOk('cg',u,p));
-  if(!ok)return bad(c.pw?'รหัสผ่านไม่ถูกต้อง':'ยังไม่ได้ตั้งรหัสผ่านส่วนตัว ให้ใช้ชื่อผู้ใช้/รหัสผ่านกลางที่ผู้ดูแลระบบแจ้ง หรือขอให้ผู้ดูแลตั้งรหัสให้');
+  const url=gsUrl();
+  if(url){if(!p)return bad('กรุณากรอกรหัสผ่าน (รหัสเข้าใช้ Key)');const btn=e.target&&e.target.querySelector&&e.target.querySelector('button:not([type=button])');if(btn)btn.disabled=true;const r=await cgKeyLogin(url,p,c);if(btn)btn.disabled=false;if(r.err)return bad(r.err)}
+  else if(!(u&&credOk('cg',u,p)))return bad('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (เครื่องนี้ยังไม่ได้เชื่อมต่อ Google Sheet)');
   currentUser={role:'cg',cgId:c.id,name:c.name}}
  sessionStorage.setItem('scg_user',JSON.stringify(currentUser));start();
- if(role==='admin'&&!db.settings.adminPw)setTimeout(()=>alert('⚠️ ขณะนี้ใช้รหัสผ่านเริ่มต้น (admin / admin)\nกรุณาไปที่ ตั้งค่าระบบ > ผู้ใช้งานและรหัสผ่าน เพื่อเปลี่ยนก่อนใช้งานจริง'),500);
- if(role==='cg'&&!db.cgs.find(x=>x.id===currentUser.cgId).pw)setTimeout(()=>alert('แนะนำให้ตั้งรหัสผ่านส่วนตัวที่เมนู "🔑 รหัสผ่านของฉัน"'),500)}
+ if(gsReady())syncNow();
+ if(role==='admin'&&!db.settings.adminPw)setTimeout(()=>alert('⚠️ ขณะนี้ใช้รหัสผ่านเริ่มต้น (admin / admin)\nกรุณาไปที่ ตั้งค่าระบบ > ผู้ใช้งานและรหัสผ่าน เพื่อเปลี่ยนก่อนใช้งานจริง'),500)}
 function logout(){sessionStorage.removeItem('scg_user');location.reload()}
 function start(){const s=sessionStorage.getItem('scg_user');if(!s)return;try{currentUser=JSON.parse(s)}catch(e){return logout()}
  $('#login').style.display='none';$('#app').style.display='flex';load();$('#userRoleBadge').textContent=currentUser.name;if(currentUser.role==='cg')state.cg=currentUser.cgId;go('dash')}
@@ -462,11 +489,9 @@ const PAGES={
  patients:['👴 ผู้สูงอายุ/ผู้ป่วย',()=>rPat(),['admin','cg']],
  map:['🗺️ แผนที่บ้านผู้รับบริการ',()=>rMap(),['admin']],
  cgs:['🧑‍⚕️ ผู้ดูแล (CG)',()=>rCg(),['admin']],
- adl:['📋 ประเมิน ADL',()=>rAdl(),['admin','cg']],
  sch:['📅 ตารางเยี่ยมบ้าน',()=>rSch(),['admin','cg']],
  visit:['🏡 บันทึกเยี่ยมบ้าน',()=>rVisit(),['admin','cg']],
  hist:['🕘 ประวัติการเยี่ยม',()=>rHist(),['admin','cg']],
- mypw:['🔑 รหัสผ่านของฉัน',()=>rMyPw(),['cg']],
  vdet:['รายละเอียดการเยี่ยม',()=>rVdet(),['admin','cg'],true],
  report:['📊 รายงานสรุปภาพรวม',()=>rReport(),['admin']],
  set:['⚙️ ตั้งค่าระบบ',()=>rSet(),['admin']]
@@ -494,6 +519,7 @@ function cgStat(c,key){const ps=activeP().filter(p=>p.cgId===c.id),vs=db.visits.
   bed:ps.filter(p=>hasAdl(p)&&+p.adl<=4).length,home:ps.filter(p=>hasAdl(p)&&+p.adl>=5&&+p.adl<=11).length}}
 function kpi(icon,val,label,sub,c,g){return `<div class="kpi" style="--c:${c};--g:${g}"><div class="ki">${icon}</div><div><b>${val}</b><span>${label}</span><small>${sub}</small></div></div>`}
 function rDash(){
+ if(currentUser.role==='cg')return rDashCG();
  if(!state.dm)state.dm=mkey(now0.getFullYear(),now0.getMonth()+1);
  const key=state.dm,isCG=currentUser.role==='cg';
  const cgs=isCG?db.cgs.filter(c=>c.id===currentUser.cgId):db.cgs;
@@ -509,7 +535,7 @@ function rDash(){
  const duty=sch?cgs.filter(c=>sch.duty[c.id]===td):[];
 
  M(`${onboard()}<div class="dhero"><div class="ic">👥</div><div><h1>แดชบอร์ด Caregiver</h1><p>การเยี่ยมราย Caregiver เดือน${thMonth(key)} · ย้อนหลัง 12 เดือน</p></div>
- <select onchange="state.dm=this.value;rDash()">${monthOpts(key)}</select></div>
+ <select onchange="state.dm=this.value;rDash()">${monthOpts(key)}</select>${refreshBtn()}</div>
 
  <div class="kpis">
  ${kpi('👥',cgs.length,'Caregiver',`ดูแล ${totP} ราย`,'#a47148','linear-gradient(135deg,#c08a5b,#7d5a40)')}
@@ -615,10 +641,10 @@ function rHist(){
  <button class="hbtn" onclick="go('visit')">＋ บันทึกการเยี่ยม</button></div></div>
  ${pf?`<div class="mtabs" style="background:#eff6ff"><span>👴 แสดงเฉพาะ: <b>${esc(pf.name)}</b></span><button class="sm sec" style="margin-left:auto" onclick="state.hpid='';rHist()">✕ ล้างตัวกรอง</button></div>`:''}
  <div class="mtabs">${tab('all','ทั้งหมด',list.length)}${tab('vital','สัญญาณชีพผิดเกณฑ์',nV)}${tab('prob','พบปัญหา',nP)}<button class="mtab" onclick="claimBtn()">📄 รายงานเบิกเดือนนี้</button></div>
- ${shown.slice(0,lim).map(v=>{const p=P(v.pid)||{name:'(ไม่พบข้อมูล)'},[y,m,d]=v.date.split('-'),fl=vitalFlags(v),adl=adlOn(v),n=vPhotoN(v);
+ ${shown.slice(0,lim).map(v=>{const p=P(v.pid)||{name:'(ไม่พบข้อมูล)'},[y,m,d]=v.date.split('-'),fl=vitalFlags(v),adl=adlOn(v),sc=scrOn(v.pid,v.date),n=vPhotoN(v);
   return `<div class="vcard" onclick="openVisit('${v.id}')"><div class="vdt"><b>${+d}</b><small>${TMS[+m-1]} ${String(+y+543).slice(2)}</small></div>
   <div class="vmain"><b>${esc(p.name)}</b> <span class="mut">· ม.${esc(p.moo||'-')}</span><div class="sub">โดย ${esc(cgName(v.cgId))} เวลา ${esc(v.tStart||'-')} · กิจกรรม ${vHelp(v).length} รายการ${v.bpS?' · BP '+esc(v.bpS)+'/'+esc(v.bpD):''}</div>
-  <div class="vbadges">${catPill(p)}${fl.length?`<span class="pill" style="color:#dc2626;border-color:#fecaca;background:#fef2f2">⚠️ ${fl.map(k=>VR[k][2]).join(', ')}</span>`:''}${v.problem?`<span class="pill" style="color:#b45309;border-color:#fde68a;background:#fffbeb">${esc(v.problem.length>36?v.problem.slice(0,36)+'…':v.problem)}</span>`:''}${adl?`<span class="pill" style="color:#1d4ed8;border-color:#bfdbfe;background:#eff6ff">ADL ${adl.score}</span>`:''}</div></div>
+  <div class="vbadges">${catPill(p)}${fl.length?`<span class="pill" style="color:#dc2626;border-color:#fecaca;background:#fef2f2">⚠️ ${fl.map(k=>VR[k][2]).join(', ')}</span>`:''}${v.problem?`<span class="pill" style="color:#b45309;border-color:#fde68a;background:#fffbeb">${esc(v.problem.length>36?v.problem.slice(0,36)+'…':v.problem)}</span>`:''}${adl?`<span class="pill" style="color:#1d4ed8;border-color:#bfdbfe;background:#eff6ff">ADL ${adl.score}</span>`:''}${sc?`<span class="pill" style="color:${sc.risk?'#b45309':'#166534'};border-color:${sc.risk?'#fde68a':'#bbf7d0'};background:${sc.risk?'#fffbeb':'#f0fdf4'}">🩺 คัดกรอง ${sc.risk?'เสี่ยง '+sc.risk+' ด้าน':'ปกติ'}</span>`:''}</div></div>
   <div class="vic"><span class="${v.lat&&v.lng?'on':''}">📍</span><span class="${n?'on':''}">📷</span></div></div>`}).join('')||'<div class="card mut" style="text-align:center">ไม่พบบันทึกการเยี่ยม</div>'}
  ${shown.length>lim?`<p style="text-align:center"><button class="sec" onclick="state.hlim=${lim}+40;const y=window.scrollY;rHist();window.scrollTo(0,y)">แสดงเพิ่ม (อีก ${shown.length-lim} รายการ)</button></p>`:''}`)}
 
@@ -635,7 +661,7 @@ async function loadVPhotos(v){const box=$('#vphotos');if(!box)return;const loc=v
   if(loc[i])show(loc[i]);else if(i<(v.nLocal||0))vLocal(v,i).then(src=>src?show(src):remote()).catch(remote);else remote()}}
 
 function rVdet(){const v=db.visits.find(x=>x.id===state.vdet);if(!v){go('hist');return}
- const p=P(v.pid)||{name:'(ไม่พบข้อมูลผู้สูงอายุ)'},fl=vitalFlags(v),[y,m,d]=v.date.split('-'),help=vHelp(v),adl=adlOn(v),has=k=>v[k]!==''&&v[k]!=null&&!isNaN(v[k]);
+ const p=P(v.pid)||{name:'(ไม่พบข้อมูลผู้สูงอายุ)'},fl=vitalFlags(v),[y,m,d]=v.date.split('-'),help=vHelp(v),adl=adlOn(v),sc=scrOn(v.pid,v.date),has=k=>v[k]!==''&&v[k]!=null&&!isNaN(v[k]);
  const cell=(l,val,u,keys)=>`<div class="vt ${keys.some(k=>fl.includes(k))?'bad':''}"><small>${l}</small><b>${esc(val)}</b><span>${u}</span></div>`,vt=[];
  if(has('bpS')||has('bpD'))vt.push(cell('ความดันโลหิต',(v.bpS||'-')+'/'+(v.bpD||'-'),'mmHg',['bpS','bpD']));
  if(has('pulse'))vt.push(cell('ชีพจร',v.pulse,'ครั้ง/นาที',['pulse']));
@@ -657,6 +683,7 @@ function rVdet(){const v=db.visits.find(x=>x.id===state.vdet);if(!v){go('hist');
  </div><div>
   <div class="dcard" style="--c:#f97316"><div class="dh"><div class="ic">⚠</div><b>ปัญหาที่พบและคำแนะนำ</b></div><div class="dbd">${v.problem||v.solution?`${v.problem?`<span class="pill" style="color:#b45309;border-color:#fde68a;background:#fffbeb">${esc(v.problem.length>40?v.problem.slice(0,40)+'…':v.problem)}</span>`:''}${v.problem?`<div class="krow"><span>ปัญหา / อุปสรรค</span><span>${esc(v.problem)}</span></div>`:''}${v.solution?`<div class="krow"><span>วิธีแก้ไข / คำแนะนำ</span><span>${esc(v.solution)}</span></div>`:''}`:'<p class="mut" style="margin:0">ไม่พบปัญหา</p>'}</div></div>
   <div class="dcard" style="--c:#8b5cf6"><div class="dh"><div class="ic">♿</div><b>ADL</b></div><div class="dbd">${adl?`<b style="font-size:24px">${adl.score}</b> / 20 <span class="badge ${adlCat(adl.score)[1]}">${adlCat(adl.score)[0]}</span><div class="mut">ประเมินโดย ${esc(adl.by||'-')}</div>`:`<span class="mut">ไม่ได้ประเมิน ADL ในครั้งนี้${hasAdl(p)?' (ล่าสุด '+p.adl+' คะแนน)':''}</span>`}</div></div>
+  <div class="dcard" style="--c:#06b6d4"><div class="dh"><div class="ic">🩺</div><b>คัดกรองสุขภาพ 10 ด้าน</b></div><div class="dbd">${sc?`<div class="vstat ${sc.risk?'bad':'ok'}" style="margin:0 0 8px">${sc.risk?'⚠️ พบความเสี่ยง '+sc.risk+' ด้าน':'✓ ปกติทุกด้าน'}</div>${SCR.filter(d=>sc.v[d.k]).map(d=>`<div class="krow"><span>${d.t}</span><span style="${d.o.indexOf(sc.v[d.k])>0?'color:#dc2626;font-weight:600':''}">${esc(sc.v[d.k])}</span></div>`).join('')}${sc.note?`<div class="krow"><span>รายละเอียด/การส่งต่อ</span><span>${esc(sc.note)}</span></div>`:''}`:'<span class="mut">ไม่ได้คัดกรองในครั้งนี้</span>'}</div></div>
   <div class="dcard" style="--c:#0ea5e9"><div class="dh"><div class="ic">👴</div><b>ข้อมูลผู้สูงอายุ</b></div><div class="dbd">
    <div class="krow"><span>ชื่อ-สกุล</span><span>${esc(p.name)}</span></div><div class="krow"><span>อายุ / เพศ</span><span>${age(p.birth)||'-'} ปี / ${esc(p.sex||'-')}</span></div><div class="krow"><span>ที่อยู่</span><span>ม.${esc(p.moo||'-')} ${esc(p.address||'')}</span></div><div class="krow"><span>โรคประจำตัว</span><span>${esc(p.disease||'-')}</span></div><div class="krow"><span>กลุ่มการดูแล</span><span>${p.group??'-'}</span></div><div class="krow"><span>ญาติ/ผู้ดูแลหลัก</span><span>${esc(p.relative||'-')} ${esc(p.relPhone||'')}</span></div></div></div>
  </div></div>`);
@@ -677,7 +704,7 @@ function rPat(){const q=state.q.toLowerCase(),base=currentUser.role==='cg'?db.pa
  <select style="width:auto" onchange="state.gf=this.value;rPat()"><option value="">ทุกกลุ่ม</option>${[0,1,2,3,4].map(i=>`<option value="${i}" ${state.gf===String(i)?'selected':''}>${GROUPS[i]}</option>`).join('')}</select>
  <span class="mut" style="margin-left:auto">พบ ${list.length} ราย</span></div>
  <div class="tw"><table><tr><th>#</th><th>ชื่อ-สกุล</th><th>วันเกิด</th><th>อายุ</th><th>ที่อยู่ / พิกัด</th><th>โทร</th><th>โรคประจำตัว</th><th>ADL</th><th>กลุ่ม</th><th>CG</th><th class="noprint">จัดการ</th></tr>
- ${list.map((p,i)=>{const [c,cl]=adlCat(p.adl);return `<tr style="${p.status==='inactive'?'opacity:.5':''}"><td>${i+1}</td><td><b>${esc(p.name)}</b>${p.status==='inactive'?' <span class="badge b-gry">จำหน่าย</span>':''}</td><td style="white-space:nowrap">${p.birth?thDate(p.birth):'-'}</td><td>${age(p.birth)}</td><td>ม.${esc(p.moo)} ${p.lat&&p.lng?`<br><a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" class="badge b-blu" style="text-decoration:none">📍 นำทาง</a>`:''}</td><td>${esc(p.phone||'-')}</td><td>${esc(p.disease||'-')}</td><td style="white-space:nowrap">${p.adl??''} <span class="badge ${cl}">${c}</span></td><td><b>${p.group}</b></td><td>${esc(cgName(p.cgId))}</td><td style="white-space:nowrap" class="noprint"><button class="sm" onclick="editPat('${p.id}')">แก้</button> <button class="sm sec" onclick="state.pre='${p.id}';go('adl')">ADL</button> ${currentUser.role==='admin'?` <button class="sm del" onclick="delPat('${p.id}')">ลบ</button>`:''}</td></tr>`}).join('')}</table></div></div>`)}
+ ${list.map((p,i)=>{const [c,cl]=adlCat(p.adl);return `<tr style="${p.status==='inactive'?'opacity:.5':''}"><td>${i+1}</td><td><b>${esc(p.name)}</b>${p.status==='inactive'?' <span class="badge b-gry">จำหน่าย</span>':''}</td><td style="white-space:nowrap">${p.birth?thDate(p.birth):'-'}</td><td>${age(p.birth)}</td><td>ม.${esc(p.moo)} ${p.lat&&p.lng?`<br><a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" class="badge b-blu" style="text-decoration:none">📍 นำทาง</a>`:''}</td><td>${esc(p.phone||'-')}</td><td>${esc(p.disease||'-')}</td><td style="white-space:nowrap">${p.adl??''} <span class="badge ${cl}">${c}</span></td><td><b>${p.group}</b></td><td>${esc(cgName(p.cgId))}</td><td style="white-space:nowrap" class="noprint"><button class="sm" onclick="editPat('${p.id}')">แก้</button> <button class="sm sec" onclick="openAdlModal('${p.id}')">ADL</button> <button class="sm sec" onclick="openScrModal('${p.id}')">10 ด้าน</button> ${currentUser.role==='admin'?` <button class="sm del" onclick="delPat('${p.id}')">ลบ</button>`:''}</td></tr>`}).join('')}</table></div></div>`)}
 function rPatKeep(){rPat();const e=$('#pq');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length)}}
 function editPat(id){const isCG=currentUser.role==='cg';const p=id?P(id):{name:'',cid:'',birth:'',sex:'',moo:'',address:(db.settings.defAddr||''),lat:'',lng:'',phone:'',disease:'',adl:'',tai:'',group:1,cgId:currentUser.cgId||'',relative:'',relPhone:'',status:'active'};
  modal(`<h3>${id?'แก้ไข':'เพิ่ม'}ข้อมูลผู้สูงอายุ / ผู้ป่วย</h3><form class="form" onsubmit="savePat(event,'${id||''}')">
@@ -709,12 +736,12 @@ function savePat(e,id){e.preventDefault();const f=Object.fromEntries(new FormDat
  f.group=+f.group;f.adl=f.adl===''?'':+f.adl;if(!f.sex)f.sex=guessSex(f.name);
  if(id)Object.assign(P(id),f);else db.patients.push({id:uid(),...f});save();closeM();rPat()}
 function delPat(id){if(currentUser.role!=='admin')return alert('เฉพาะผู้ดูแลระบบเท่านั้นที่ลบได้');const p0=P(id);if(!p0)return;if(!confirm('ยืนยันลบ "'+p0.name+'" และประวัติ ADL/การเยี่ยมบ้านทั้งหมด?\nลบแล้วกู้คืนไม่ได้ (แนะนำเปลี่ยนสถานะเป็น "จำหน่าย" แทน)'))return;
- db.patients=db.patients.filter(p=>p.id!==id);db.adl=db.adl.filter(x=>x.pid!==id);db.tai=db.tai.filter(x=>x.pid!==id);db.visits=db.visits.filter(x=>x.pid!==id);Object.values(db.schedules).forEach(s=>delete s.visits[id]);save();closeM();rPat()}
+ db.patients=db.patients.filter(p=>p.id!==id);db.adl=db.adl.filter(x=>x.pid!==id);db.tai=db.tai.filter(x=>x.pid!==id);db.scr=(db.scr||[]).filter(x=>x.pid!==id);db.visits=db.visits.filter(x=>x.pid!==id);Object.values(db.schedules).forEach(s=>delete s.visits[id]);save();closeM();rPat()}
 
 /* ---------- CG ---------- */
 function rCg(){M(`<h2>จัดการข้อมูลผู้ดูแล (Caregiver)</h2><div class="card"><div class="toolbar"><button onclick="editCg()">➕ เพิ่ม CG</button><span class="mut" style="margin-left:auto">รวม ${db.cgs.length} คน</span></div>
  <div class="tw"><table><tr><th>#</th><th>ชื่อ-สกุล</th><th>เบอร์โทร</th><th>พื้นที่</th><th>ผู้ป่วย</th><th>ภาระงาน/เดือน</th><th class="noprint">จัดการ</th></tr>
- ${db.cgs.map((c,i)=>{const ps=activeP().filter(p=>p.cgId===c.id),a=ps.filter(p=>p.group==1||p.group==2).length,b=ps.filter(p=>p.group>=3).length;return `<tr><td>${i+1}</td><td><b>${esc(c.name)}</b>${c.pw?' <span class="badge b-grn">ตั้งรหัสแล้ว</span>':''}</td><td>${esc(c.phone||'-')}</td><td>${esc(c.area||'-')}</td><td><b>${ps.length}</b> ราย</td><td>เยี่ยม ${a*2+b*4} ครั้ง + เวรศูนย์ 1</td><td style="white-space:nowrap" class="noprint"><button class="sm" onclick="editCg('${c.id}')">แก้ไข</button> <button class="sm sec" onclick="state.cg='${c.id}';go('patients')">รายชื่อ</button></td></tr>`}).join('')}</table></div></div>`)}
+ ${db.cgs.map((c,i)=>{const ps=activeP().filter(p=>p.cgId===c.id),a=ps.filter(p=>p.group==1||p.group==2).length,b=ps.filter(p=>p.group>=3).length;return `<tr><td>${i+1}</td><td><b>${esc(c.name)}</b></td><td>${esc(c.phone||'-')}</td><td>${esc(c.area||'-')}</td><td><b>${ps.length}</b> ราย</td><td>เยี่ยม ${a*2+b*4} ครั้ง + เวรศูนย์ 1</td><td style="white-space:nowrap" class="noprint"><button class="sm" onclick="editCg('${c.id}')">แก้ไข</button> <button class="sm sec" onclick="state.cg='${c.id}';go('patients')">รายชื่อ</button></td></tr>`}).join('')}</table></div></div>`)}
 function editCg(id){const c=id?db.cgs.find(x=>x.id===id):{name:'',cid:'',phone:'',area:'',note:''};
  modal(`<h3>${id?'แก้ไข':'เพิ่ม'}ข้อมูล CG</h3><form class="form" onsubmit="saveCg(event,'${id||''}')">
  <label class="full">ชื่อ-สกุล CG *<input name="name" required value="${esc(c.name)}"></label>
@@ -722,36 +749,65 @@ function editCg(id){const c=id?db.cgs.find(x=>x.id===id):{name:'',cid:'',phone:'
  <label>เบอร์โทรศัพท์<input name="phone" inputmode="tel" value="${esc(c.phone||'')}"></label>
  <label class="full">พื้นที่รับผิดชอบ<input name="area" value="${esc(c.area||'')}"></label>
  <label class="full">หมายเหตุ<input name="note" value="${esc(c.note||'')}"></label>
- <label class="full">รหัสผ่านเข้าใช้ของ CG ${c.pw?'(ตั้งแล้ว เว้นว่างถ้าไม่เปลี่ยน)':'(ยังไม่ได้ตั้ง ใช้รหัสกลางอยู่)'}<input name="newpw" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label>
- ${c.pw?'<label class="chk-item full"><input type="checkbox" name="resetpw"><span>ลบรหัสส่วนตัวของ CG คนนี้ (กลับไปใช้รหัสกลาง)</span></label>':''}
  <div class="full err" id="cerr"></div>
  <div class="full" style="display:flex;gap:10px"><button type="submit">💾 บันทึก</button><button type="button" class="sec" onclick="closeM()">ยกเลิก</button>${id?`<button type="button" class="del" style="margin-left:auto" onclick="delCg('${id}')">ลบ</button>`:''}</div></form>`)}
 function saveCg(e,id){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));f.cid=f.cid.replace(/\D/g,'');f.name=f.name.trim();
  if(f.cid&&!validCID(f.cid))return $('#cerr').textContent='เลขบัตรประชาชนไม่ถูกต้อง';
- const np=f.newpw||'',rs=f.resetpw;delete f.newpw;delete f.resetpw;
- if(np&&np.length<6)return $('#cerr').textContent='รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร';
- let rec;if(id){rec=db.cgs.find(c=>c.id===id);Object.assign(rec,f)}else{rec={id:uid(),...f};db.cgs.push(rec)}
- if(np)rec.pw=cgPwHash(rec.id,np);else if(rs)delete rec.pw;
- save();closeM();rCg()}
+ if(id)Object.assign(db.cgs.find(c=>c.id===id),f);else db.cgs.push({id:uid(),...f});save();closeM();rCg()}
 function delCg(id){const n=db.patients.filter(p=>p.cgId===id).length;if(n)return alert(`ยังมีผู้ป่วยในความดูแล ${n} ราย กรุณาย้ายไป CG อื่นก่อน`);if(!confirm('ยืนยันลบ CG?'))return;db.cgs=db.cgs.filter(c=>c.id!==id);save();closeM();rCg()}
 
-/* ---------- ADL ---------- */
-function rAdl(){const pid=state.pre||'';state.pre=null;
- M(`<h2>แบบประเมิน Barthel ADL Index</h2><div class="card"><div class="form">
- <label class="full">เลือกผู้ป่วย *<select id="ap" onchange="adlHist()">${patOpts(pid)}</select></label>
- <label>วันที่ประเมิน<input type="date" id="adate" value="${todayISO()}"></label>
- <label>ผู้ประเมิน<input id="aby" value="${esc(currentUser.name)}"></label></div></div>
- <div class="card"><div class="score" id="ascore">คะแนนรวม: 0 / 20 (ยังไม่ประเมิน)</div>
- ${ADL_ITEMS.map((it,i)=>`<div class="q"><b>${it[0]}</b><div class="opts">${it[1].map((o,s)=>`<label class="chk-item"><input type="radio" name="a${i}" value="${s}" onchange="adlCalc()"><span><b>${s} คะแนน:</b> ${o}</span></label>`).join('')}</div></div>`).join('')}
- <button onclick="saveAdl()">💾 บันทึก ADL</button></div>
- <div class="card"><h3>ประวัติ ADL</h3><div id="ahist"></div></div>`);adlHist()}
+/* ---------- ADL + คัดกรองสุขภาพ 10 ด้าน (รวมอยู่ในบันทึกเยี่ยมบ้าน) ---------- */
 function adlVals(){return ADL_ITEMS.map((_,i)=>{const r=document.querySelector(`input[name=a${i}]:checked`);return r?+r.value:null})}
 function adlCalc(){const v=adlVals(),s=v.reduce((a,b)=>a+(b||0),0),n=v.filter(x=>x!==null).length,[c,cl]=adlCat(s);$('#ascore').innerHTML=`คะแนนรวม: <b>${s}</b> / 20 ${n===10?`<span class="badge ${cl}">${c}</span>`:`<span class="mut">(ตอบ ${n}/10)</span>`}`}
-function saveAdl(){const pid=$('#ap').value,v=adlVals();if(!pid)return alert('กรุณาเลือกผู้ป่วย');if(v.includes(null))return alert('กรุณาประเมินให้ครบ 10 ข้อ');
- const s=v.reduce((a,b)=>a+b,0),date=$('#adate').value;db.adl.push({id:uid(),pid,date,items:v,score:s,by:$('#aby').value});
- const p=P(pid);p.adl=s;p.adlDate=date;save();alert(`บันทึกสำเร็จ: ${p.name}\nADL = ${s} (${adlCat(s)[0]})`);state.pre=pid;rAdl()}
-function adlHist(){const pid=$('#ap').value,l=db.adl.filter(x=>x.pid===pid).sort((a,b)=>b.date.localeCompare(a.date));
- $('#ahist').innerHTML=!pid?'<p class="mut">เลือกผู้ป่วยเพื่อดูประวัติ</p>':l.length?`<div class="tw"><table><tr><th>วันที่</th><th>คะแนน</th><th>ผล</th><th>รายข้อ</th><th>ผู้ประเมิน</th><th></th></tr>${l.map(x=>{const [c,cl]=adlCat(x.score);return `<tr><td>${thDate(x.date)}</td><td><b>${x.score}</b>/20</td><td><span class="badge ${cl}">${c}</span></td><td>${x.items.join('-')}</td><td>${esc(x.by)}</td><td><button class="sm del" onclick="if(confirm('ลบ?')){db.adl=db.adl.filter(y=>y.id!=='${x.id}');save();adlHist()}">ลบ</button></td></tr>`}).join('')}</table></div>`:'<p class="mut">ยังไม่มีประวัติ</p>'}
+function adlBlock(){return `<div class="score" id="ascore">คะแนนรวม: 0 / 20 (ยังไม่ประเมิน)</div>${ADL_ITEMS.map((it,i)=>`<div class="q"><b>${it[0]}</b><div class="opts">${it[1].map((o,s)=>`<label class="chk-item"><input type="radio" name="a${i}" value="${s}" onchange="adlCalc()"><span><b>${s} คะแนน:</b> ${o}</span></label>`).join('')}</div></div>`).join('')}`}
+function putAdl(pid,date,items,by){const s=items.reduce((a,b)=>a+b,0);const r=db.adl.find(x=>x.pid===pid&&x.date===date);if(r){r.items=items;r.score=s;r.by=by}else db.adl.push({id:uid(),pid,date,items,score:s,by});
+ const p=P(pid);if(p&&(!p.adlDate||date>=p.adlDate)){p.adl=s;p.adlDate=date}return s}
+const SCR=[
+ {k:'vision',t:'การมองเห็น',i:'👁️',c:'#1d4ed8',bg:'#eff6ff',o:['ปกติ มองเห็นชัดเจน','มองเห็นไม่ชัด แต่ใส่แว่นแล้วดีขึ้น','มองเห็นไม่ชัดแม้ใส่แว่น','มองไม่เห็น']},
+ {k:'hearing',t:'การได้ยิน',i:'👂',c:'#0f766e',bg:'#ecfdf5',o:['ปกติ ได้ยินชัดเจน','ได้ยินไม่ชัดบางครั้ง','ได้ยินไม่ชัด ต้องพูดเสียงดัง','ไม่ได้ยิน']},
+ {k:'oral',t:'สุขภาพช่องปาก',i:'🙂',c:'#b45309',bg:'#fff7ed',o:['ปกติ ฟันและเหงือกดี','ฟันผุ / เหงือกอักเสบ','ฟันหลุดหลายซี่ เคี้ยวอาหารลำบาก','ใส่ฟันปลอม','ไม่มีฟัน']},
+ {k:'memory',t:'ความจำและการรู้คิด',i:'🧠',c:'#6d28d9',bg:'#f5f3ff',o:['ปกติ','หลงลืมเล็กน้อย','หลงลืมบ่อย ต้องคอยเตือน','สับสนมาก สงสัยภาวะสมองเสื่อม']},
+ {k:'mood',t:'ภาวะซึมเศร้า',i:'💗',c:'#be185d',bg:'#fdf2f8',o:['ปกติ ไม่มีอาการ','มีอาการ 1 ข้อ (เศร้า/ท้อแท้ หรือ เบื่อไม่สนใจสิ่งต่างๆ)','มีอาการ 2 ข้อ ควรประเมิน 9Q / ส่งต่อ']},
+ {k:'mobility',t:'การเคลื่อนไหว / หกล้ม',i:'🦶',c:'#b45309',bg:'#fffbeb',o:['ปกติ ไม่เคยหกล้ม','เสี่ยงหกล้ม เดินไม่มั่นคง','เคยหกล้มในรอบ 1 ปี','เดินเองไม่ได้']},
+ {k:'nutri',t:'ภาวะโภชนาการ',i:'🍴',c:'#7c4a2d',bg:'#faf5f0',o:['ปกติ','น้ำหนักลดโดยไม่ตั้งใจ','กินได้น้อย / เบื่ออาหาร','ผอม / ขาดสารอาหาร','น้ำหนักเกิน / อ้วน']},
+ {k:'bladder',t:'การกลั้นปัสสาวะ',i:'💧',c:'#1d4ed8',bg:'#eff6ff',o:['ปกติ กลั้นได้','กลั้นไม่ได้บางครั้ง','กลั้นไม่ได้บ่อย','ใช้ผ้าอ้อม / สายสวน']},
+ {k:'sleep',t:'การนอนหลับ',i:'🌙',c:'#4338ca',bg:'#eef2ff',o:['ปกติ หลับสนิท','นอนไม่หลับบางคืน','นอนไม่หลับเป็นประจำ','นอนกลางวันมาก / ตื่นกลางคืนบ่อย']},
+ {k:'daily',t:'กิจวัตรประจำวัน',i:'🏠',c:'#047857',bg:'#ecfdf5',o:['ทำเองได้ทั้งหมด','ต้องช่วยบางส่วน','ต้องช่วยมาก','ทำเองไม่ได้เลย']}];
+function scrCards(sel){sel=sel||{};return SCR.map(d=>`<div class="scrc" style="--c:${d.c};--c2:${d.c}bb;--bg:${d.bg}"><div class="sh"><div class="sic">${d.i}</div>${d.t}</div><select id="scr_${d.k}"><option value="">เลือก${d.t}</option>${d.o.map(o=>`<option value="${esc(o)}" ${sel[d.k]===o?'selected':''}>${esc(o)}</option>`).join('')}</select></div>`).join('')}
+function readScr(){const v={};let n=0;SCR.forEach(d=>{const el=document.getElementById('scr_'+d.k);if(el&&el.value!==''){v[d.k]=el.value;n++}});return n?v:null}
+function putScr(pid,date,vals,note,by){const risk=SCR.filter(d=>vals[d.k]&&d.o.indexOf(vals[d.k])>0).length,rec={pid,date,v:vals,risk,note:note||'',by:by||''};const r=db.scr.find(x=>x.pid===pid&&x.date===date);if(r)Object.assign(r,rec);else db.scr.push({id:uid(),...rec});return risk}
+const scrOn=(pid,date)=>(db.scr||[]).find(x=>x.pid===pid&&x.date===date);
+const inMonth=(arr,pid,key)=>arr.filter(x=>x.pid===pid&&x.date.startsWith(key)).sort((a,b)=>b.date.localeCompare(a.date))[0];
+function printModal(){document.body.classList.add('pm');window.print();setTimeout(()=>document.body.classList.remove('pm'),600)}
+function openAdlModal(pid){const p=P(pid);if(!p)return;
+ modal(`<h3>🫀 คัดกรอง ADL (Barthel) — ${esc(p.name)}</h3><div class="form" style="margin-bottom:10px"><label>วันที่ประเมิน<input type="date" id="mdate" value="${todayISO()}"></label></div>${adlBlock()}
+ <div class="mfoot noprint"><button class="sec" onclick="printModal()">🖨️ พิมพ์</button><button class="sec" onclick="closeM()">ปิด</button><button onclick="saveAdlModal('${pid}')">บันทึกข้อมูล</button></div>`)}
+function saveAdlModal(pid){const v=adlVals();if(v.includes(null))return alert('กรุณาประเมินให้ครบ 10 ข้อ');const s=putAdl(pid,$('#mdate').value||todayISO(),v,currentUser.name);save();closeM();toast('✅ บันทึก ADL แล้ว ('+s+' คะแนน · '+adlCat(s)[0]+')');refreshView(true)}
+function openScrModal(pid){const p=P(pid);if(!p)return;const ex=inMonth(db.scr,pid,mkey(now0.getFullYear(),now0.getMonth()+1));
+ modal(`<h3>🩺 ประเมินผู้สูงอายุ 10 ด้าน — ${esc(p.name)}</h3><div class="form" style="margin-bottom:12px"><label>วันที่ประเมิน<input type="date" id="mdate" value="${ex?ex.date:todayISO()}"></label></div>
+ <div class="scrg">${scrCards(ex?ex.v:{})}</div><label style="display:block;margin-top:14px;font-size:13px;color:var(--m);font-weight:600">รายละเอียด / การส่งต่อ<input id="mnote" value="${esc(ex?ex.note:'')}"></label>
+ <div class="mfoot noprint"><button class="sec" onclick="printModal()">🖨️ พิมพ์</button><button class="sec" onclick="closeM()">ปิด</button><button onclick="saveScrModal('${pid}')">บันทึกข้อมูล</button></div>`)}
+function saveScrModal(pid){const v=readScr();if(!v)return alert('กรุณาเลือกผลการประเมินอย่างน้อย 1 ด้าน');const r=putScr(pid,$('#mdate').value||todayISO(),v,$('#mnote').value.trim(),currentUser.name);save();closeM();toast('✅ บันทึกการคัดกรองแล้ว ('+(r?'พบความเสี่ยง '+r+' ด้าน':'ปกติทุกด้าน')+')');refreshView(true)}
+
+/* ---------- แดชบอร์ดสำหรับ CG ---------- */
+const GCOL={1:['#0f766e','#14b8a6','#ecfdf5'],2:['#0369a1','#38bdf8','#f0f9ff'],3:['#6d28d9','#a78bfa','#f5f3ff'],4:['#be185d','#f472b6','#fdf2f8'],0:['#475569','#94a3b8','#f8fafc']};
+const refreshBtn=()=>gsReady()?'<button class="hbtn" onclick="manualRefresh()">🔄 รีเฟรชข้อมูล</button>':'';
+async function manualRefresh(){toast('⏳ กำลังซิงค์...');const e=await syncNow(true);toast(e?'⚠️ '+e:'✅ ได้ข้อมูลล่าสุดแล้ว');if(!e)refreshView(true)}
+function rDashCG(){
+ if(!state.dm)state.dm=mkey(now0.getFullYear(),now0.getMonth()+1);
+ const key=state.dm,me=db.cgs.find(x=>x.id===currentUser.cgId)||{name:currentUser.name},sch=db.schedules[key],td=todayISO(),tdD=+td.slice(8),isCur=key===td.slice(0,7);
+ const ps=activeP().filter(p=>p.cgId===currentUser.cgId).sort((a,b)=>(+a.moo||0)-(+b.moo||0)||String(a.name).localeCompare(String(b.name),'th'));
+ const vm=pid=>db.visits.filter(v=>v.pid===pid&&v.date.startsWith(key)),plan=p=>sch?(sch.visits[p.id]||[]).length:visitsNeeded(p.group);
+ const seen=ps.filter(p=>vm(p.id).length).length,mine=db.visits.filter(v=>v.cgId===currentUser.cgId&&v.date.startsWith(key)),th=mine.reduce((a,v)=>a+vHrs(v),0);
+ M(`<div class="dhero"><div class="ic">👋</div><div><h1>${esc(me.name)}</h1><p>ผู้สูงอายุในความดูแลของฉัน · เดือน${thMonth(key)}</p></div>
+ <div class="hctl noprint"><select onchange="state.dm=this.value;rDash()">${monthOpts(key)}</select>${refreshBtn()}</div></div>
+ <div class="kpis" style="grid-template-columns:repeat(3,1fr)">${kpi('👴',ps.length,'ผู้สูงอายุในความดูแล','','#a47148','linear-gradient(135deg,#c08a5b,#7d5a40)')}${kpi('✅',seen+'/'+ps.length,'ได้รับการเยี่ยมแล้ว','เดือนนี้','#10b981','linear-gradient(135deg,#34d399,#059669)')}${kpi('⏱️',fmtH(th),'ชั่วโมงให้บริการ',mine.length+' ครั้ง','#3b82f6','linear-gradient(135deg,#60a5fa,#4f46e5)')}</div>
+ <div class="pcards">${ps.map(p=>{const [c1,c2,bg]=GCOL[+p.group]||GCOL[0],n=vm(p.id).length,pl=plan(p),adl=inMonth(db.adl,p.id,key),sc=inMonth(db.scr,p.id,key),due=isCur&&sch&&(sch.visits[p.id]||[]).includes(tdD);
+  return `<div class="pcard" style="--c:${c1};--c2:${c2};--bg:${bg}"><div class="pch"><div class="pav">👤</div><div><b>${esc(p.name)}</b>${due?' <span class="badge b-amb">📌 นัดวันนี้</span>':''}<small>📍 หมู่ ${esc(p.moo||'-')}</small><small>กลุ่ม ${p.group} • CG ${esc(cgName(p.cgId))}</small></div></div>
+  <div class="pcb"><button class="pbtn" onclick="startVisit('${p.id}','${td}')">📷 บันทึกเยี่ยมและแนบรูป →</button>
+  <div class="pchip ${n?'ok':''}">${n?'✓ เยี่ยมแล้ว '+n+' ครั้ง':'○ ยังไม่ได้บันทึกการเยี่ยม'} · แผน ${pl} ครั้ง</div>
+  <button class="pbtn ${adl?'ok':'red'}" onclick="openAdlModal('${p.id}')">🫀 คัดกรอง ADL<span>${adl?'✓ ประเมินแล้ว '+adl.score+' คะแนน · '+adlCat(adl.score)[0]:'✗ ยังไม่ได้ประเมิน'}</span></button>
+  <button class="pbtn ${sc?'ok':'red'}" onclick="openScrModal('${p.id}')">🩺 ประเมินผู้สูงอายุ 10 ด้าน<span>${sc?'✓ ประเมินแล้ว · '+(sc.risk?'พบความเสี่ยง '+sc.risk+' ด้าน':'ปกติทุกด้าน'):'✗ ยังไม่ได้ประเมิน'}</span></button></div></div>`}).join('')||'<div class="card mut">ยังไม่มีผู้สูงอายุในความดูแล (เพิ่มได้ที่เมนู ผู้สูงอายุ)</div>'}</div>`)}
 
 /* ---------- SCHEDULE ---------- */
 function holSet(){const s=new Set();(db.settings.holidays||'').split(/\s+/).forEach(l=>{const m=l.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(m){let y=+m[1];if(y>2400)y-=543;s.add(`${y}-${pad(m[2])}-${pad(m[3])}`)}});return s}
@@ -855,7 +911,9 @@ function rVisit(){const pre=state.pre||{};state.pre=null;const d=pre.date||today
    <small class="mut" style="display:block;margin-top:8px">💡 กรอกเฉพาะค่าที่วัดได้ ระบบจะแสดงค่าจากการเยี่ยมครั้งก่อนให้อัตโนมัติ</small>
  </div>
 
- <div class="full" style="background:#faf8f5;padding:14px;border-radius:12px;border:1px solid #e7e0db"><h3 style="margin-top:0;color:var(--br)">📍 พิกัดการเยี่ยม</h3><input type="hidden" name="vlat" id="vLat"><input type="hidden" name="vlng" id="vLng"><input type="hidden" name="vacc" id="vAcc"><div id="vGpsTxt" class="mut">กำลังดึงพิกัด...</div><button type="button" class="sm sec" style="margin-top:8px" onclick="getVGps(false)">📍 ดึงพิกัดใหม่</button></div>
+ <details class="full dsec" id="adlSec"><summary>🫀 4. ประเมิน ADL (Barthel) — ไม่บังคับ</summary><div style="margin-top:10px">${adlBlock()}</div></details>
+ <details class="full dsec" id="scrSec" open><summary>🩺 5. คัดกรองสุขภาพผู้สูงอายุ 10 ด้าน — ไม่บังคับ</summary><div class="scrg" style="margin-top:12px">${scrCards({})}</div><label style="display:block;margin-top:12px;font-size:13px;color:var(--m);font-weight:600">รายละเอียด / การส่งต่อ<input name="scrNote"></label></details>
+ <div class="full" style="background:#faf8f5;padding:14px;border-radius:12px;border:1px solid #e7e0db"><h3 style="margin-top:0;color:var(--br)">📍 6. พิกัดการเยี่ยม</h3><input type="hidden" name="vlat" id="vLat"><input type="hidden" name="vlng" id="vLng"><input type="hidden" name="vacc" id="vAcc"><div id="vGpsTxt" class="mut">กำลังดึงพิกัด...</div><button type="button" class="sm sec" style="margin-top:8px" onclick="getVGps(false)">📍 ดึงพิกัดใหม่</button></div>
  <label class="full">แนบรูปภาพการเยี่ยมบ้าน (เลือกได้หลายรูป)<input type="file" accept="image/*" multiple onchange="handlePhotos(this)"><div id="photoPreview"></div></label>
  <div class="full"><b>กิจกรรมที่ช่วยเหลือ</b><div class="chk-group">${HELPS.map(x=>`<label class="chk-item"><input type="checkbox" name="help" value="${x}"><span>${x}</span></label>`).join('')}</div>
  <input name="helpOther" placeholder="กิจกรรมอื่นๆ เพิ่มเติม" style="margin-top:8px"></div>
@@ -888,10 +946,13 @@ async function saveVisit(e){e.preventDefault();const fd=new FormData(e.target);
  const mins=+fd.get('mins')||60;
  const v={id:uid(),created:Date.now(),date:fd.get('date'),cgId:currentUser.role==='cg'?currentUser.cgId:$('#vc').value,pid:fd.get('pid'),tStart:fd.get('tStart'),mins:mins,bpS:fd.get('bpS'),bpD:fd.get('bpD'),pulse:fd.get('pulse'),temp:fd.get('temp'),resp:fd.get('resp'),spo2:fd.get('spo2'),bs:fd.get('bs'),weight:fd.get('weight'),lat:fd.get('vlat')||'',lng:fd.get('vlng')||'',acc:fd.get('vacc')||'',nLocal:0,help:fd.getAll('help'),helpOther:(fd.get('helpOther')||'').trim(),sat:fd.get('sat'),problem:(fd.get('problem')||'').trim(),solution:(fd.get('solution')||'').trim()};
  if(!v.pid)return alert('กรุณาเลือกผู้สูงอายุ');
+ const av=document.querySelector('input[name=a0]')?adlVals():[],an=av.filter(x=>x!==null).length;if(an&&an<10)return alert('กรุณาประเมิน ADL ให้ครบ 10 ข้อ หรือไม่ต้องเลือกเลย');
+ const scr=readScr();
  const sb=e.target.querySelector('button[type=submit]');if(sb){if(sb.disabled)return;sb.disabled=true}
  const pics=tempVisitPhotos.slice();let okAll=true;for(let i=0;i<pics.length;i++)if(!await phPut(v.id+':'+i,pics[i]))okAll=false;
  if(pics.length){if(okAll)v.nLocal=pics.length;else v.photos=pics}
- db.visits.push(v);if(!save()){db.visits.pop();if(sb)sb.disabled=false;return}alert('บันทึกการเยี่ยมเรียบร้อย');state.vm=v.date.slice(0,7);state.pre={cg:v.cgId,date:v.date};tempVisitPhotos=[];rVisit()}
+ db.visits.push(v);if(an===10)putAdl(v.pid,v.date,av,currentUser.name);if(scr)putScr(v.pid,v.date,scr,(fd.get('scrNote')||'').trim(),currentUser.name);
+ if(!save()){db.visits.pop();if(sb)sb.disabled=false;return}alert('บันทึกการเยี่ยมเรียบร้อย');state.vm=v.date.slice(0,7);state.pre={cg:v.cgId,date:v.date};tempVisitPhotos=[];rVisit()}
 function visitNo(v){return db.visits.filter(x=>x.pid===v.pid&&x.date.slice(0,7)===v.date.slice(0,7)).sort((a,b)=>a.date.localeCompare(b.date)||a.created-b.created).findIndex(x=>x.id===v.id)+1}
 function vRows(){return db.visits.filter(v=>v.date.startsWith(state.vm)&&(currentUser.role!=='cg'||v.cgId===currentUser.cgId)&&(!state.vcg||currentUser.role==='cg'||v.cgId===state.vcg)).sort((a,b)=>a.date.localeCompare(b.date)||a.created-b.created)}
 function vList(){const list=vRows();
