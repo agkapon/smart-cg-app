@@ -690,10 +690,40 @@ function rVdet(){const v=db.visits.find(x=>x.id===state.vdet);if(!v){go('hist');
  </div></div>`);
  setTimeout(()=>{if(pt&&typeof L!=='undefined'&&$('#vmap')){const mp=L.map('vmap').setView(pt,17);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(mp);L.marker(pt).addTo(mp);if(hasV&&+v.acc>0)L.circle(pt,{radius:+v.acc,color:'#ec4899',weight:1}).addTo(mp)}loadVPhotos(v)},60)}
 
-function getVGps(auto){const t=$('#vGpsTxt');if(!navigator.geolocation){if(t)t.textContent='อุปกรณ์ไม่รองรับ GPS';return}
- if(t)t.textContent='⏳ กำลังดึงพิกัด...';
- navigator.geolocation.getCurrentPosition(pos=>{if(!$('#vLat'))return;$('#vLat').value=pos.coords.latitude.toFixed(6);$('#vLng').value=pos.coords.longitude.toFixed(6);$('#vAcc').value=Math.round(pos.coords.accuracy);if($('#vGpsTxt'))$('#vGpsTxt').textContent=`📍 ${$('#vLat').value}, ${$('#vLng').value} (ความแม่นยำประมาณ ${$('#vAcc').value} เมตร)`},()=>{if($('#vGpsTxt'))$('#vGpsTxt').textContent='ยังไม่ได้พิกัด (อนุญาตการเข้าถึงตำแหน่งแล้วกด "ดึงพิกัดใหม่")';if(!auto)alert('ไม่สามารถดึงพิกัดได้ กรุณาอนุญาตสิทธิ์ตำแหน่ง')},{enableHighAccuracy:true,timeout:15000})}
-function orgGPS(){if(!navigator.geolocation)return alert('อุปกรณ์ไม่รองรับ GPS');navigator.geolocation.getCurrentPosition(p=>{$('#s5').value=p.coords.latitude.toFixed(6);$('#s6').value=p.coords.longitude.toFixed(6)},()=>alert('ไม่สามารถดึงพิกัดได้'),{enableHighAccuracy:true,timeout:15000})}
+/* ---------- GPS / ตำแหน่ง ---------- */
+async function getPos(){
+ if(window.isSecureContext===false){throw {code:0}}
+ if(!navigator.geolocation)throw {code:-1};
+ const one=o=>new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,o));
+ try{return await one({enableHighAccuracy:true,timeout:12000,maximumAge:30000})}
+ catch(e){if(e&&e.code===1)throw e;return await one({enableHighAccuracy:false,timeout:20000,maximumAge:120000})}}
+function gpsWhy(c){return {1:'ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง',2:'หาตำแหน่งไม่ได้ (สัญญาณ GPS ไม่พร้อม)',3:'หาตำแหน่งไม่ทัน (หมดเวลา)',0:'ต้องเปิดเว็บผ่าน https จึงจะใช้ตำแหน่งได้','-1':'อุปกรณ์/เบราว์เซอร์นี้ไม่รองรับการหาตำแหน่ง'}[c]||'ดึงพิกัดไม่สำเร็จ'}
+function gpsSteps(c){const ua=navigator.userAgent||'',ios=/iPhone|iPad|iPod/.test(ua),inApp=/Line\/|FBAN|FBAV|Instagram|MicroMessenger/i.test(ua);const L=[];
+ if(inApp)L.push('คุณเปิดเว็บจากในแอป (เช่น LINE/Facebook) ซึ่งมักบล็อกตำแหน่ง ให้กดเมนู ⋮ แล้วเลือก "เปิดในเบราว์เซอร์" (Chrome หรือ Safari) ก่อน');
+ if(c===1||c===undefined){
+  const and=/Android/.test(ua),pc=!ios&&!and;
+  if(ios||pc)L.push('iPhone/iPad: ไปที่ ตั้งค่า > ความเป็นส่วนตัวและความปลอดภัย > บริการหาตำแหน่ง > เปิดไว้ แล้วเลือก Safari เว็บไซต์ เป็น "ขณะใช้แอป" หรือ "ถาม" จากนั้นกลับมารีเฟรชหน้านี้');
+  if(and||pc)L.push('Android (Chrome): แตะไอคอน 🔒 หรือ ⚙️ ข้างช่องที่อยู่เว็บ > สิทธิ์/Permissions > ตำแหน่ง > เลือก "อนุญาต" แล้วรีเฟรชหน้านี้ (หรือ ตั้งค่า > แอป > Chrome > สิทธิ์ > ตำแหน่ง > อนุญาต)');
+  if(pc)L.push('คอมพิวเตอร์: คลิกไอคอน 🔒 ข้างช่องที่อยู่เว็บ > ตำแหน่ง > อนุญาต แล้วรีเฟรช');
+ }
+ L.push('ตรวจว่าเปิด "ตำแหน่ง/GPS" ของเครื่องไว้ (ปัดแถบด้านบนลงมาดูไอคอนตำแหน่ง)');
+ if(c===2||c===3)L.push('ออกไปยังที่โล่ง หรือรอสักครู่แล้วกดดึงพิกัดใหม่');
+ if(c===0)L.push('เปิดเว็บด้วยลิงก์ที่ขึ้นต้น https:// เท่านั้น');
+ L.push('ถ้ายังไม่ได้ ข้ามไปก่อนได้ ระบบยังบันทึกการเยี่ยมได้ตามปกติ (จะไม่มีพิกัดการเยี่ยม) และเปิดดูพิกัดบ้านผู้สูงอายุแทนได้');
+ return L}
+function gpsHelpText(c){return gpsWhy(c)+'\n\nวิธีแก้:\n'+gpsSteps(c).map((x,i)=>(i+1)+'. '+x).join('\n')}
+function gpsHelp(c){modal(`<h3>📍 ${esc(gpsWhy(c))}</h3><p class="mut" style="margin-top:0">ลองแก้ตามนี้ แล้วกด "ดึงพิกัดใหม่"</p><ol style="line-height:1.9;padding-left:20px">${gpsSteps(c).map(x=>`<li>${esc(x)}</li>`).join('')}</ol><button onclick="closeM();getVGps(false)">ลองดึงพิกัดอีกครั้ง</button> <button class="sec" onclick="closeM()">ปิด</button>`)}
+function showGpsErr(c){const t=$('#vGpsTxt');if(!t)return;const p=P(($('#vp')||{}).value),home=p&&p.lat&&p.lng;
+ t.innerHTML=`⚠️ ${esc(gpsWhy(c))} · <a href="#" onclick="gpsHelp(${c});return false">ดูวิธีแก้</a>${home?` · <a href="#" onclick="useHomeGps();return false">ใช้พิกัดบ้านผู้สูงอายุแทน</a>`:''}`}
+function useHomeGps(){const p=P($('#vp').value);if(!p||!p.lat||!p.lng)return alert('ผู้สูงอายุรายนี้ยังไม่มีพิกัดบ้าน');$('#vLat').value=p.lat;$('#vLng').value=p.lng;$('#vAcc').value='';$('#vGpsTxt').textContent='📍 ใช้พิกัดบ้านผู้สูงอายุ '+p.lat+', '+p.lng}
+async function getVGps(auto){const t=$('#vGpsTxt');if(!t)return;
+ if(auto&&navigator.permissions&&navigator.permissions.query){try{const st=await navigator.permissions.query({name:'geolocation'});if(st.state==='denied'){showGpsErr(1);return}}catch(e){}}
+ t.textContent='⏳ กำลังดึงพิกัด...';
+ try{const pos=await getPos();if(!$('#vLat'))return;$('#vLat').value=pos.coords.latitude.toFixed(6);$('#vLng').value=pos.coords.longitude.toFixed(6);$('#vAcc').value=Math.round(pos.coords.accuracy);
+  if($('#vGpsTxt'))$('#vGpsTxt').textContent=`📍 ${$('#vLat').value}, ${$('#vLng').value} (ความแม่นยำประมาณ ${$('#vAcc').value} เมตร)`}
+ catch(e){showGpsErr(e&&e.code!==undefined?e.code:2)}}
+async function getGPS(){try{const p=await getPos();$('#pLat').value=p.coords.latitude.toFixed(6);$('#pLng').value=p.coords.longitude.toFixed(6);toast('✅ ดึงพิกัดสำเร็จ')}catch(e){alert(gpsHelpText(e&&e.code!==undefined?e.code:2))}}
+async function orgGPS(){try{const p=await getPos();$('#s5').value=p.coords.latitude.toFixed(6);$('#s6').value=p.coords.longitude.toFixed(6);toast('✅ ดึงพิกัดสำเร็จ')}catch(e){alert(gpsHelpText(e&&e.code!==undefined?e.code:2))}}
 
 /* ---------- PATIENTS ---------- */
 function rPat(){const q=state.q.toLowerCase(),base=currentUser.role==='cg'?db.patients.filter(p=>p.cgId===currentUser.cgId):db.patients;
@@ -728,7 +758,6 @@ function editPat(id){const isCG=currentUser.role==='cg';const p=id?P(id):{name:'
  <label>สถานะ<select name="status"><option value="active">อยู่ในความดูแล</option><option value="inactive" ${p.status==='inactive'?'selected':''}>จำหน่าย (เสียชีวิต/ย้าย)</option></select></label>
  <div class="full err" id="perr"></div>
  <div class="full" style="display:flex;gap:10px"><button type="submit">💾 บันทึก</button><button type="button" class="sec" onclick="closeM()">ยกเลิก</button>${id&&!isCG?`<button type="button" class="del" style="margin-left:auto" onclick="delPat('${id}')">ลบ</button>`:''}</div></form>`)}
-function getGPS(){if(!navigator.geolocation)return alert('อุปกรณ์ไม่รองรับ GPS');navigator.geolocation.getCurrentPosition(pos=>{$('#pLat').value=pos.coords.latitude.toFixed(6);$('#pLng').value=pos.coords.longitude.toFixed(6);alert('ดึงพิกัดสำเร็จ')},()=>alert('ไม่สามารถดึงพิกัดได้ กรุณาอนุญาตสิทธิ์ตำแหน่ง'),{enableHighAccuracy:true,timeout:15000})}
 function savePat(e,id){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const err=t=>$('#perr').textContent=t;
  f.cid=(f.cid||'').replace(/\D/g,'');f.name=f.name.trim();
  if(f.cid&&!validCID(f.cid))return err('เลขบัตรประชาชน 13 หลักไม่ถูกต้อง');
