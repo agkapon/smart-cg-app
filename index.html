@@ -140,6 +140,16 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 .lconn-link{text-align:center;font-size:12px;margin-top:10px}.lconn-link a{color:#8b6447}
 @media(max-width:700px){.scrg{grid-template-columns:1fr}.kpis[style]{grid-template-columns:repeat(3,1fr)!important}}
 @media print{body.pm>*:not(#modal){display:none!important}body.pm #modal{position:static;background:none;display:block!important;padding:0}body.pm #modal .box{max-height:none;box-shadow:none;max-width:none}}
+/* ===== MAP PICKER ===== */
+#pick{position:fixed;inset:0;z-index:500;background:#000a;display:flex;align-items:center;justify-content:center;padding:10px}
+.pk-box{background:#fff;border-radius:16px;width:100%;max-width:920px;height:min(88vh,740px);display:flex;flex-direction:column;overflow:hidden}
+.pk-h{display:flex;gap:8px;align-items:center;padding:10px 12px;flex-wrap:wrap;border-bottom:1px solid #ece7e1}
+.pk-s{display:flex;gap:6px;flex:1;min-width:210px}.pk-s input{flex:1;min-width:0}
+#pkmap{flex:1;min-height:220px}
+.pk-f{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border-top:1px solid #ece7e1;font-size:13px}
+.pk-f button{white-space:nowrap}.pk-f button:disabled{opacity:.45;cursor:not-allowed}
+#pkres{max-height:150px;overflow:auto;padding:0 12px}
+#pkres button{display:block;width:100%;text-align:left;background:#faf6f1;color:#3b2a1f;margin:4px 0;font-weight:400;font-size:13px}
 /* ===== MAP / HISTORY / DETAIL ===== */
 .mtabs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#f1ece6;border-radius:14px;padding:6px;margin:16px 0}
 .mtab{background:transparent;color:#5c4030;border-radius:10px;padding:9px 14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;width:auto}
@@ -698,32 +708,71 @@ async function getPos(){
  try{return await one({enableHighAccuracy:true,timeout:12000,maximumAge:30000})}
  catch(e){if(e&&e.code===1)throw e;return await one({enableHighAccuracy:false,timeout:20000,maximumAge:120000})}}
 function gpsWhy(c){return {1:'ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง',2:'หาตำแหน่งไม่ได้ (สัญญาณ GPS ไม่พร้อม)',3:'หาตำแหน่งไม่ทัน (หมดเวลา)',0:'ต้องเปิดเว็บผ่าน https จึงจะใช้ตำแหน่งได้','-1':'อุปกรณ์/เบราว์เซอร์นี้ไม่รองรับการหาตำแหน่ง'}[c]||'ดึงพิกัดไม่สำเร็จ'}
-function gpsSteps(c){const ua=navigator.userAgent||'',ios=/iPhone|iPad|iPod/.test(ua),inApp=/Line\/|FBAN|FBAV|Instagram|MicroMessenger/i.test(ua);const L=[];
- if(inApp)L.push('คุณเปิดเว็บจากในแอป (เช่น LINE/Facebook) ซึ่งมักบล็อกตำแหน่ง ให้กดเมนู ⋮ แล้วเลือก "เปิดในเบราว์เซอร์" (Chrome หรือ Safari) ก่อน');
+function gpsSteps(c){const ua=navigator.userAgent||'',ios=/iPhone|iPad|iPod/.test(ua),and=/Android/.test(ua),pc=!ios&&!and,inApp=/Line\/|FBAN|FBAV|Instagram|MicroMessenger/i.test(ua),L=[];
+ if(inApp)L.push('คุณเปิดเว็บจากในแอป (เช่น LINE/Facebook) ซึ่งมักบล็อกตำแหน่ง ให้กดเมนู ⋮ แล้วเลือก "เปิดในเบราว์เซอร์" (Chrome หรือ Safari)');
  if(c===1||c===undefined){
-  const and=/Android/.test(ua),pc=!ios&&!and;
-  if(ios||pc)L.push('iPhone/iPad: ไปที่ ตั้งค่า > ความเป็นส่วนตัวและความปลอดภัย > บริการหาตำแหน่ง > เปิดไว้ แล้วเลือก Safari เว็บไซต์ เป็น "ขณะใช้แอป" หรือ "ถาม" จากนั้นกลับมารีเฟรชหน้านี้');
-  if(and||pc)L.push('Android (Chrome): แตะไอคอน 🔒 หรือ ⚙️ ข้างช่องที่อยู่เว็บ > สิทธิ์/Permissions > ตำแหน่ง > เลือก "อนุญาต" แล้วรีเฟรชหน้านี้ (หรือ ตั้งค่า > แอป > Chrome > สิทธิ์ > ตำแหน่ง > อนุญาต)');
-  if(pc)L.push('คอมพิวเตอร์: คลิกไอคอน 🔒 ข้างช่องที่อยู่เว็บ > ตำแหน่ง > อนุญาต แล้วรีเฟรช');
+  if(pc){L.push('ในเบราว์เซอร์ (Chrome/Edge): คลิกไอคอน 🔒 ข้างช่องที่อยู่เว็บ > ตำแหน่ง > เลือก "อนุญาต" แล้วรีเฟรชหน้า (ถ้าเคยกด "บล็อก" ต้องมาเปลี่ยนตรงนี้ หรือไปที่ chrome://settings/content/location แล้วลบเว็บนี้ออกจากรายการ "ไม่อนุญาต")');
+   L.push('Windows: ตั้งค่า > ความเป็นส่วนตัวและความปลอดภัย > ตำแหน่ง > เปิด "บริการตำแหน่ง" และเปิด "ให้แอปบนเดสก์ท็อปเข้าถึงตำแหน่งของคุณ" (ถ้าปิดอยู่ เบราว์เซอร์จะขึ้นว่าไม่ได้รับอนุญาตทั้งที่กดอนุญาตแล้ว)');
+   L.push('Mac: การตั้งค่าระบบ > ความเป็นส่วนตัวและความปลอดภัย > บริการหาตำแหน่ง > เปิดให้ Chrome/Safari')}
+  if(ios)L.push('iPhone/iPad: ตั้งค่า > ความเป็นส่วนตัวและความปลอดภัย > บริการหาตำแหน่ง > เปิดไว้ แล้วเลือก Safari เว็บไซต์ เป็น "ขณะใช้แอป" หรือ "ถาม" จากนั้นรีเฟรชหน้านี้');
+  if(and)L.push('Android (Chrome): แตะไอคอน 🔒 ข้างช่องที่อยู่เว็บ > สิทธิ์ > ตำแหน่ง > อนุญาต แล้วรีเฟรชหน้านี้ (หรือ ตั้งค่า > แอป > Chrome > สิทธิ์ > ตำแหน่ง > อนุญาต)');
  }
- L.push('ตรวจว่าเปิด "ตำแหน่ง/GPS" ของเครื่องไว้ (ปัดแถบด้านบนลงมาดูไอคอนตำแหน่ง)');
- if(c===2||c===3)L.push('ออกไปยังที่โล่ง หรือรอสักครู่แล้วกดดึงพิกัดใหม่');
+ L.push('ตรวจว่าเปิด "ตำแหน่ง/GPS" ของเครื่องไว้');
+ if(c===2||c===3)L.push('ออกไปยังที่โล่ง หรือรอสักครู่แล้วกดดึงพิกัดใหม่ (คอมพิวเตอร์ที่ไม่มี GPS ใช้ Wi-Fi ประมาณตำแหน่ง อาจหาไม่ได้)');
  if(c===0)L.push('เปิดเว็บด้วยลิงก์ที่ขึ้นต้น https:// เท่านั้น');
- L.push('ถ้ายังไม่ได้ ข้ามไปก่อนได้ ระบบยังบันทึกการเยี่ยมได้ตามปกติ (จะไม่มีพิกัดการเยี่ยม) และเปิดดูพิกัดบ้านผู้สูงอายุแทนได้');
  return L}
-function gpsHelpText(c){return gpsWhy(c)+'\n\nวิธีแก้:\n'+gpsSteps(c).map((x,i)=>(i+1)+'. '+x).join('\n')}
-function gpsHelp(c){modal(`<h3>📍 ${esc(gpsWhy(c))}</h3><p class="mut" style="margin-top:0">ลองแก้ตามนี้ แล้วกด "ดึงพิกัดใหม่"</p><ol style="line-height:1.9;padding-left:20px">${gpsSteps(c).map(x=>`<li>${esc(x)}</li>`).join('')}</ol><button onclick="closeM();getVGps(false)">ลองดึงพิกัดอีกครั้ง</button> <button class="sec" onclick="closeM()">ปิด</button>`)}
+/* วิธีที่ไม่ต้องใช้ GPS: คัดลอกพิกัดจาก Google Maps แล้ววาง */
+function parseLL(t){t=String(t||'').trim();let m=t.match(/@(-?\d{1,3}\.\d+),\s*(-?\d{1,3}\.\d+)/)||t.match(/[?&](?:q|ll|query)=(-?\d{1,3}\.\d+)(?:,|%2C)\s*(-?\d{1,3}\.\d+)/)||t.match(/(-?\d{1,3}\.\d+)\s*[,;\s]\s*(-?\d{1,3}\.\d+)/);if(!m)return null;const a=+m[1],b=+m[2];return Math.abs(a)<=90&&Math.abs(b)<=180?[a.toFixed(6),b.toFixed(6)]:null}
+function pasteLL(latId,lngId,after){const t=prompt('วางพิกัดจาก Google Maps\n\nวิธีคัดลอก: เปิด Google Maps > คลิกขวา (หรือกดค้างบนมือถือ) ที่จุดที่ต้องการ > คลิกตัวเลขพิกัดด้านบนสุดของเมนู เพื่อคัดลอก แล้ววางที่นี่\nตัวอย่าง: 17.123456, 101.654321');if(t===null)return;
+ const ll=parseLL(t);if(!ll)return alert('อ่านพิกัดไม่ได้ กรุณาวางตัวเลขแบบ ละติจูด, ลองจิจูด เช่น 17.123456, 101.654321');
+ $('#'+latId).value=ll[0];$('#'+lngId).value=ll[1];if(after)after(ll);else toast('✅ ใส่พิกัดแล้ว')}
+function gpsHelpText(c){const st=gpsSteps(c).slice(0,2).map((x,i)=>(i+1)+'. '+x.slice(0,150)+(x.length>150?'…':'')).join('\n');return gpsWhy(c)+'\n\n'+st+'\n\nหรือกดปุ่ม "📌 ปักหมุด" เพื่อเลือกตำแหน่งบนแผนที่แทน (ไม่ต้องใช้ GPS ใช้ได้ทั้งมือถือและคอมพิวเตอร์)'}
+function gpsHelp(c,tgt){const pick=tgt?`closeM();pickOnMap('${tgt[0]}','${tgt[1]}')`:'closeM();pickVGps()',paste=tgt?`closeM();pasteLL('${tgt[0]}','${tgt[1]}')`:'closeM();pasteVGps()';
+ modal(`<h3>📍 ${esc(gpsWhy(c))}</h3><p class="mut" style="margin-top:0">มี 2 ทางเลือก</p><b>ทางที่ 1: เปิดสิทธิ์ตำแหน่ง แล้วลองใหม่</b><ol style="line-height:1.8;padding-left:20px">${gpsSteps(c).map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
+ <b>ทางที่ 2: ไม่ต้องใช้ GPS (ใช้ได้ทั้งมือถือและคอมพิวเตอร์)</b><p style="margin:6px 0 12px">ปักหมุดบนแผนที่ (ค้นหาชื่อสถานที่ได้ และสลับเป็นภาพดาวเทียมได้) หรือวางพิกัดที่คัดลอกจาก Google Maps</p>
+ <div style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="${pick}">📌 ปักหมุดบนแผนที่</button><button class="sec" onclick="${paste}">🗺️ วางพิกัด</button><button class="sec" onclick="closeM();${tgt?'':'getVGps(false)'}">${tgt?'ปิด':'ลองดึงพิกัดอีกครั้ง'}</button></div>`)}
+function pasteVGps(){pasteLL('vLat','vLng',ll=>{$('#vAcc').value='';$('#vGpsTxt').textContent='📍 '+ll[0]+', '+ll[1]+' (กรอกเอง)'})}
 function showGpsErr(c){const t=$('#vGpsTxt');if(!t)return;const p=P(($('#vp')||{}).value),home=p&&p.lat&&p.lng;
- t.innerHTML=`⚠️ ${esc(gpsWhy(c))} · <a href="#" onclick="gpsHelp(${c});return false">ดูวิธีแก้</a>${home?` · <a href="#" onclick="useHomeGps();return false">ใช้พิกัดบ้านผู้สูงอายุแทน</a>`:''}`}
+ t.innerHTML=`⚠️ ${esc(gpsWhy(c))} · <a href="#" onclick="gpsHelp(${c});return false">ดูวิธีแก้</a> · <a href="#" onclick="pickVGps();return false">ปักหมุดบนแผนที่</a> · <a href="#" onclick="pasteVGps();return false">วางพิกัดเอง</a>${home?` · <a href="#" onclick="useHomeGps();return false">ใช้พิกัดบ้านผู้สูงอายุแทน</a>`:''}`}
+/* ---------- ปักหมุดบนแผนที่ (ใช้ได้ทั้งมือถือและคอมพิวเตอร์ ไม่ต้องใช้ GPS) ---------- */
+var _pk=null;
+function closePick(){if(_pk&&_pk.map){try{_pk.map.remove()}catch(e){}}_pk=null;const o=document.getElementById('pick');if(o)o.remove()}
+function pickOnMap(latId,lngId,after){
+ if(typeof L==='undefined')return alert('โหลดแผนที่ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ต แล้วรีเฟรชหน้าเว็บ');
+ closePick();const S=db.settings||{};
+ const ov=document.createElement('div');ov.id='pick';
+ ov.innerHTML=`<div class="pk-box"><div class="pk-h"><b>📌 ปักหมุดบนแผนที่</b><div class="pk-s"><input id="pkq" placeholder="ค้นหาชื่อสถานที่/หมู่บ้าน เช่น รพ.สต.บ้านห้วยอาลัย"><button type="button" id="pkgo">ค้นหา</button></div><button type="button" class="sec" id="pkgps">📍 ตำแหน่งของฉัน</button><button type="button" class="sec" id="pkx">✕ ปิด</button></div><div id="pkres"></div><div id="pkmap"></div><div class="pk-f"><span id="pkt" class="mut">แตะ/คลิกบนแผนที่เพื่อปักหมุด หรือลากหมุดไปยังตำแหน่งที่ต้องการ (สลับเป็นภาพดาวเทียมได้ที่มุมขวาบนของแผนที่)</span><button type="button" id="pkok" disabled>✅ ใช้ตำแหน่งนี้</button></div></div>`;
+ document.body.appendChild(ov);
+ const g=id=>document.getElementById(id),cur=[parseFloat(($('#'+latId)||{}).value),parseFloat(($('#'+lngId)||{}).value)],hasCur=!isNaN(cur[0])&&!isNaN(cur[1]),org=[parseFloat(S.orgLat),parseFloat(S.orgLng)],hasOrg=!isNaN(org[0])&&!isNaN(org[1]);
+ const map=L.map('pkmap'),osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}),sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri'});
+ osm.addTo(map);if(L.control&&L.control.layers)L.control.layers({'แผนที่':osm,'ดาวเทียม':sat}).addTo(map);
+ _pk={map,pt:null,mk:null};
+ const setPt=(ll,zoom)=>{ll={lat:+ll.lat,lng:+ll.lng};_pk.pt=ll;if(_pk.mk)_pk.mk.setLatLng([ll.lat,ll.lng]);else{_pk.mk=L.marker([ll.lat,ll.lng],{draggable:true}).addTo(map);_pk.mk.on('dragend',()=>{const p=_pk.mk.getLatLng();setPt(p)})}
+  g('pkt').innerHTML=`📍 <b>${ll.lat.toFixed(6)}, ${ll.lng.toFixed(6)}</b>`;g('pkok').disabled=false;if(zoom)map.setView([ll.lat,ll.lng],zoom)};
+ _pk.setPt=setPt;
+ if(hasCur){map.setView(cur,17);setPt({lat:cur[0],lng:cur[1]})}else if(hasOrg)map.setView(org,15);else{map.setView([13.75,100.5],6);
+  const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),4000);fetch('https://ipwho.is/',{signal:ac.signal}).then(r=>r.json()).then(j=>{if(j&&j.latitude&&!_pk.pt)map.setView([j.latitude,j.longitude],11)}).catch(()=>{}).finally(()=>clearTimeout(tm))}
+ map.on('click',e=>setPt(e.latlng));
+ setTimeout(()=>{try{map.invalidateSize()}catch(e){}},80);
+ const search=async()=>{const q=g('pkq').value.trim();if(!q)return;const r=g('pkres');r.innerHTML='<p class="mut" style="margin:6px 0">⏳ กำลังค้นหา...</p>';
+  try{const j=await (await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&accept-language=th&countrycodes=th&q='+encodeURIComponent(q))).json();
+   r.innerHTML=j.length?j.map((x,i)=>`<button type="button" data-i="${i}">${esc(x.display_name.slice(0,120))}</button>`).join(''):'<p class="mut" style="margin:6px 0">ไม่พบสถานที่นี้ ลองพิมพ์ชื่ออื่น หรือเลื่อนแผนที่แล้วปักหมุดเอง</p>';
+   r.querySelectorAll('button').forEach(b=>b.onclick=()=>{const x=j[+b.dataset.i];setPt({lat:+x.lat,lng:+x.lon},17);r.innerHTML=''})}
+  catch(e){r.innerHTML='<p class="mut" style="margin:6px 0">ค้นหาไม่สำเร็จ (ตรวจอินเทอร์เน็ต) เลื่อนแผนที่แล้วปักหมุดเองได้</p>'}};
+ g('pkgo').onclick=search;g('pkq').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();search()}};
+ g('pkgps').onclick=async()=>{try{const p=await getPos();setPt({lat:p.coords.latitude,lng:p.coords.longitude},17)}catch(e){toast('ใช้ตำแหน่งปัจจุบันไม่ได้ ปักหมุดบนแผนที่ได้เลย')}};
+ g('pkx').onclick=closePick;
+ g('pkok').onclick=()=>{const p=_pk.pt;if(!p)return;const ll=[p.lat.toFixed(6),p.lng.toFixed(6)];$('#'+latId).value=ll[0];$('#'+lngId).value=ll[1];closePick();if(after)after(ll);else toast('✅ ใส่พิกัดแล้ว')}}
+function pickVGps(){pickOnMap('vLat','vLng',ll=>{$('#vAcc').value='';$('#vGpsTxt').textContent='📍 '+ll[0]+', '+ll[1]+' (ปักหมุดเอง)'})}
 function useHomeGps(){const p=P($('#vp').value);if(!p||!p.lat||!p.lng)return alert('ผู้สูงอายุรายนี้ยังไม่มีพิกัดบ้าน');$('#vLat').value=p.lat;$('#vLng').value=p.lng;$('#vAcc').value='';$('#vGpsTxt').textContent='📍 ใช้พิกัดบ้านผู้สูงอายุ '+p.lat+', '+p.lng}
 async function getVGps(auto){const t=$('#vGpsTxt');if(!t)return;
- if(auto&&navigator.permissions&&navigator.permissions.query){try{const st=await navigator.permissions.query({name:'geolocation'});if(st.state==='denied'){showGpsErr(1);return}}catch(e){}}
+ if(auto){let st='';try{st=(await navigator.permissions.query({name:'geolocation'})).state}catch(e){}if(st==='denied'){showGpsErr(1);return}if(st!=='granted'){t.innerHTML='📍 ยังไม่ได้บันทึกตำแหน่ง · กดปุ่ม "ดึงพิกัดใหม่" หรือ "ปักหมุดบนแผนที่" ด้านล่าง (ข้ามได้)';return}}
  t.textContent='⏳ กำลังดึงพิกัด...';
  try{const pos=await getPos();if(!$('#vLat'))return;$('#vLat').value=pos.coords.latitude.toFixed(6);$('#vLng').value=pos.coords.longitude.toFixed(6);$('#vAcc').value=Math.round(pos.coords.accuracy);
   if($('#vGpsTxt'))$('#vGpsTxt').textContent=`📍 ${$('#vLat').value}, ${$('#vLng').value} (ความแม่นยำประมาณ ${$('#vAcc').value} เมตร)`}
  catch(e){showGpsErr(e&&e.code!==undefined?e.code:2)}}
 async function getGPS(){try{const p=await getPos();$('#pLat').value=p.coords.latitude.toFixed(6);$('#pLng').value=p.coords.longitude.toFixed(6);toast('✅ ดึงพิกัดสำเร็จ')}catch(e){alert(gpsHelpText(e&&e.code!==undefined?e.code:2))}}
-async function orgGPS(){try{const p=await getPos();$('#s5').value=p.coords.latitude.toFixed(6);$('#s6').value=p.coords.longitude.toFixed(6);toast('✅ ดึงพิกัดสำเร็จ')}catch(e){alert(gpsHelpText(e&&e.code!==undefined?e.code:2))}}
+async function orgGPS(){try{const p=await getPos();$('#s5').value=p.coords.latitude.toFixed(6);$('#s6').value=p.coords.longitude.toFixed(6);toast('✅ ดึงพิกัดสำเร็จ')}catch(e){gpsHelp(e&&e.code!==undefined?e.code:2,['s5','s6'])}}
 
 /* ---------- PATIENTS ---------- */
 function rPat(){const q=state.q.toLowerCase(),base=currentUser.role==='cg'?db.patients.filter(p=>p.cgId===currentUser.cgId):db.patients;
@@ -746,7 +795,7 @@ function editPat(id){const isCG=currentUser.role==='cg';const p=id?P(id):{name:'
  <label>หมู่ที่<input name="moo" value="${esc(p.moo)}"></label>
  <label>เบอร์โทรศัพท์<input name="phone" inputmode="tel" value="${esc(p.phone)}"></label>
  <label class="full">ที่อยู่ (บ้านเลขที่/ตำบล/อำเภอ/จังหวัด)<input name="address" value="${esc(p.address)}"></label>
- <label>ละติจูด (Latitude)<div class="gps"><input name="lat" id="pLat" inputmode="decimal" value="${esc(p.lat||'')}"><button type="button" class="sm sec" onclick="getGPS()">📍 ดึงพิกัด</button></div></label>
+ <label>ละติจูด (Latitude)<div class="gps"><input name="lat" id="pLat" inputmode="decimal" value="${esc(p.lat||'')}"><button type="button" class="sm sec" onclick="getGPS()">📍 ดึงพิกัด</button><button type="button" class="sm sec" onclick="pasteLL('pLat','pLng')">🗺️ วางพิกัด</button><button type="button" class="sm sec" onclick="pickOnMap('pLat','pLng')">📌 ปักหมุด</button></div></label>
  <label>ลองจิจูด (Longitude)<input name="lng" id="pLng" inputmode="decimal" value="${esc(p.lng||'')}"></label>
  <label class="full">โรคประจำตัว<input name="disease" placeholder="เช่น เบาหวาน, ความดันโลหิตสูง" value="${esc(p.disease)}"></label>
  <label>คะแนน ADL (0-20)<input type="number" min="0" max="20" name="adl" value="${p.adl??''}"></label>
@@ -943,7 +992,7 @@ function rVisit(){const pre=state.pre||{};state.pre=null;const d=pre.date||today
 
  <details class="full dsec" id="adlSec"><summary>🫀 4. ประเมิน ADL (Barthel) — ไม่บังคับ</summary><div style="margin-top:10px">${adlBlock()}</div></details>
  <details class="full dsec" id="scrSec" open><summary>🩺 5. คัดกรองสุขภาพผู้สูงอายุ 10 ด้าน — ไม่บังคับ</summary><div class="scrg" style="margin-top:12px">${scrCards({})}</div><label style="display:block;margin-top:12px;font-size:13px;color:var(--m);font-weight:600">รายละเอียด / การส่งต่อ<input name="scrNote"></label></details>
- <div class="full" style="background:#faf8f5;padding:14px;border-radius:12px;border:1px solid #e7e0db"><h3 style="margin-top:0;color:var(--br)">📍 6. พิกัดการเยี่ยม</h3><input type="hidden" name="vlat" id="vLat"><input type="hidden" name="vlng" id="vLng"><input type="hidden" name="vacc" id="vAcc"><div id="vGpsTxt" class="mut">กำลังดึงพิกัด...</div><button type="button" class="sm sec" style="margin-top:8px" onclick="getVGps(false)">📍 ดึงพิกัดใหม่</button></div>
+ <div class="full" style="background:#faf8f5;padding:14px;border-radius:12px;border:1px solid #e7e0db"><h3 style="margin-top:0;color:var(--br)">📍 6. พิกัดการเยี่ยม</h3><input type="hidden" name="vlat" id="vLat"><input type="hidden" name="vlng" id="vLng"><input type="hidden" name="vacc" id="vAcc"><div id="vGpsTxt" class="mut">กำลังดึงพิกัด...</div><button type="button" class="sm sec" style="margin-top:8px" onclick="getVGps(false)">📍 ดึงพิกัดใหม่</button> <button type="button" class="sm sec" style="margin-top:8px" onclick="pickVGps()">📌 ปักหมุดบนแผนที่</button></div>
  <label class="full">แนบรูปภาพการเยี่ยมบ้าน (เลือกได้หลายรูป)<input type="file" accept="image/*" multiple onchange="handlePhotos(this)"><div id="photoPreview"></div></label>
  <div class="full"><b>กิจกรรมที่ช่วยเหลือ</b><div class="chk-group">${HELPS.map(x=>`<label class="chk-item"><input type="checkbox" name="help" value="${x}"><span>${x}</span></label>`).join('')}</div>
  <input name="helpOther" placeholder="กิจกรรมอื่นๆ เพิ่มเติม" style="margin-top:8px"></div>
@@ -1020,7 +1069,7 @@ function rSet(){const S=db.settings;
  <label class="full">ชื่อ รพ.สต. / หน่วยงาน<input id="s0" value="${esc(S.orgName||'')}" placeholder="เช่น รพ.สต.บ้านตัวอย่าง"></label>
  <label class="full">ต้นสังกัด / พื้นที่รับผิดชอบ (แสดงใต้ชื่อในหน้าล็อกอิน)<input id="s7" value="${esc(S.orgSub||'')}" placeholder="เช่น ต.ตัวอย่าง อ.เมือง จ.ตัวอย่าง"></label>
  <label class="full">ที่อยู่ตั้งต้นของผู้ป่วยใหม่<input id="s8" value="${esc(S.defAddr||'')}" placeholder="เช่น ต.ตัวอย่าง อ.เมือง จ.ตัวอย่าง"></label>
- <label>ละติจูดหน่วยบริการ (แสดงบนแผนที่)<div class="gps"><input id="s5" inputmode="decimal" value="${esc(S.orgLat||'')}"><button type="button" class="sm sec" onclick="orgGPS()">📍 ดึงพิกัด</button></div></label>
+ <label>ละติจูดหน่วยบริการ (แสดงบนแผนที่)<div class="gps"><input id="s5" inputmode="decimal" value="${esc(S.orgLat||'')}"><button type="button" class="sm sec" onclick="orgGPS()">📍 ดึงพิกัด</button><button type="button" class="sm sec" onclick="pasteLL('s5','s6')">🗺️ วางพิกัด</button><button type="button" class="sm sec" onclick="pickOnMap('s5','s6')">📌 ปักหมุด</button></div></label>
  <label>ลองจิจูดหน่วยบริการ<input id="s6" inputmode="decimal" value="${esc(S.orgLng||'')}"></label>
  <label>ชม. ต่อการเยี่ยม 1 ครั้ง (ค่าตั้งต้น)<input type="number" id="s1" value="${S.visitHrs}" step="0.5" min="0"></label>
  <label>ชม. เวรประจำศูนย์<input type="number" id="s2" value="${S.dutyHrs}" step="0.5" min="0"></label>
