@@ -150,6 +150,12 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 .pk-f button{white-space:nowrap}.pk-f button:disabled{opacity:.45;cursor:not-allowed}
 #pkres{max-height:150px;overflow:auto;padding:0 12px}
 #pkres button{display:block;width:100%;text-align:left;background:#faf6f1;color:#3b2a1f;margin:4px 0;font-weight:400;font-size:13px}
+/* ===== DIALOG ===== */
+#dlg{position:fixed;inset:0;z-index:900;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}
+.dlg-box{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:420px;box-shadow:0 20px 50px #0006}
+.dlg-m{font-size:15px;line-height:1.6;white-space:normal;word-break:break-word;margin-bottom:14px}
+.dlg-box input{margin-bottom:14px}
+.dlg-b{display:flex;gap:10px;justify-content:flex-end}.dlg-b button{min-width:84px}
 /* ===== MAP / HISTORY / DETAIL ===== */
 .mtabs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#f1ece6;border-radius:14px;padding:6px;margin:16px 0}
 .mtab{background:transparent;color:#5c4030;border-radius:10px;padding:9px 14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;width:auto}
@@ -224,8 +230,8 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid 
 <option value="cg">อาสาสมัครดูแลผู้สูงอายุ (CG)</option>
 </select></label>
 <div id="cgSelBox" style="display:none"><label>เลือกชื่อ CG ของท่าน<select id="lcgId"></select></label><div id="lkeyhint" class="mut" style="font-size:12px;margin:-4px 0 6px"></div></div>
-<label>ชื่อผู้ใช้<input id="lu" autocomplete="username" required placeholder="กรอกชื่อผู้ใช้"></label>
-<label>รหัสผ่าน<input id="lp" type="password" autocomplete="current-password" required placeholder="กรอกรหัสผ่าน"></label>
+<label id="lulab">ชื่อผู้ใช้<input id="lu" autocomplete="username" required placeholder="กรอกชื่อผู้ใช้"></label>
+<label id="lplab">รหัสผ่าน<input id="lp" type="password" autocomplete="current-password" required placeholder="กรอกรหัสผ่าน"></label>
 <div id="lerr" class="err"></div><button style="width:100%;margin-top:14px">เข้าสู่ระบบ</button></form>
 <div class="lfoot">พัฒนาโดย <b>นายเอกพล อาจโยธา</b> ผอ.รพ.สต.บ้านห้วยอาลัย</div>
 </div></div>
@@ -270,6 +276,20 @@ const SATS=['พอใจมาก','พอใจ','ไม่พอใจ'];
 const AVC=['linear-gradient(135deg,#c084fc,#9333ea)','linear-gradient(135deg,#f472b6,#be185d)','linear-gradient(135deg,#fb7185,#e11d48)','linear-gradient(135deg,#60a5fa,#2563eb)','linear-gradient(135deg,#34d399,#059669)','linear-gradient(135deg,#fbbf24,#d97706)'];
 const SEED=[];
 
+
+/* ---------- กล่องข้อความในหน้า (แทน alert/confirm/prompt ของเบราว์เซอร์ ซึ่งถูกบล็อกในหน้าที่เปิดผ่าน Google Apps Script) ---------- */
+var _dq=[];
+function dlg(o){if(window.__dlgAuto){const r=window.__dlgAuto(o);return Promise.resolve(r)}return new Promise(res=>{_dq.push({o,res});if(_dq.length===1)dlgShow()})}
+function dlgShow(){const old=document.getElementById('dlg');if(old)old.remove();const it=_dq[0];if(!it)return;const o=it.o,ov=document.createElement('div');ov.id='dlg';
+ ov.innerHTML=`<div class="dlg-box"><div class="dlg-m">${esc(o.msg).replace(/\n/g,'<br>')}</div>${o.input?`<input id="dlgin" value="${esc(o.def||'')}">`:''}<div class="dlg-b">${o.cancel?`<button type="button" class="sec" id="dlgc">${esc(o.cancelText||'ยกเลิก')}</button>`:''}<button type="button" id="dlgo">${esc(o.okText||'ตกลง')}</button></div></div>`;
+ document.body.appendChild(ov);const done=v=>{_dq.shift();it.res(v);dlgShow()},ok=document.getElementById('dlgo'),i=document.getElementById('dlgin');
+ ok.onclick=()=>done(o.input?i.value:true);if(o.cancel)document.getElementById('dlgc').onclick=()=>done(o.input?null:false);
+ if(i){i.focus();i.select();i.onkeydown=e=>{if(e.key==='Enter')ok.click()}}else ok.focus()}
+const askConfirm=(msg,okText)=>dlg({msg:String(msg),cancel:true,okText:okText||'ยืนยัน'});
+const askPrompt=(msg,def)=>dlg({msg:String(msg),input:true,def:def||'',cancel:true});
+const copyDlg=t=>dlg({msg:'คัดลอกข้อความนี้ (กดที่ช่องแล้วเลือกทั้งหมด หรือกดค้างบนมือถือ)',input:true,def:t,okText:'ปิด'});
+window.alert=m=>{if(window.__dlgAuto){window.__dlgAuto({msg:String(m),alert:true});return}dlg({msg:String(m)})};
+const GS_EMBED='__EXEC_URL__',GS_PRESET='__PRESET_KEY__',GS_EMB=!GS_EMBED.startsWith('__');
 let db,_c=0;
 const now0=new Date();
 let state={y:now0.getFullYear(),m:now0.getMonth()+1,cg:'',q:'',gf:'',vm:'',vcg:'',dm:'',pre:null};
@@ -316,7 +336,7 @@ async function vLocal(v,i){if(v.photos&&v.photos[i])return v.photos[i];if(v.phot
 async function migratePhotos(){let n=0;for(const v of db.visits){const arr=v.photos||(v.photo?[v.photo]:[]);if(!arr.length)continue;let ok=true;for(let i=0;i<arr.length;i++)if(!await phPut(v.id+':'+i,arr[i]))ok=false;if(ok){v.nLocal=arr.length;delete v.photos;delete v.photo;n++}}if(n)persist()}
 function toast(msg,fn){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#3b2a1f;color:#fff;padding:10px 16px;border-radius:24px;font-size:14px;z-index:400;box-shadow:0 6px 20px #0005;cursor:pointer;max-width:90vw;text-align:center';document.body.appendChild(t)}t.textContent=msg;t.style.display='block';t.onclick=()=>{t.style.display='none';fn&&fn()};clearTimeout(t._h);t._h=setTimeout(()=>{t.style.display='none'},9000)}
 const GSK='smartcg_gs',GSS='smartcg_gs_state',GSU='smartcg_gs_url';
-const gsUrl=()=>(gsCfg()||{}).url||localStorage.getItem(GSU)||'';
+const gsUrl=()=>GS_EMB?GS_EMBED:((gsCfg()||{}).url||localStorage.getItem(GSU)||'');
 const COLS=['cgs','patients','adl','tai','scr','visits'];
 const ALLC=[...COLS,'schedules','settings'];
 const hm=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
@@ -361,16 +381,21 @@ function buildDirty(){const out=[],keys=[];
   else delete db._d[key]}
  return{out,keys}}
 
-async function gsCall(body,cfgo){const c=cfgo||gsCfg(),ac=new AbortController(),tm=setTimeout(()=>ac.abort(),40000);
- try{const r=await fetch(c.url,{method:'POST',body:JSON.stringify(Object.assign({key:c.key},body)),signal:ac.signal});
-  if(!r.ok)throw new Error('เซิร์ฟเวอร์ตอบกลับผิดพลาด ('+r.status+')');
-  let j;try{j=await r.json()}catch(e){throw new Error('ตอบกลับไม่ถูกต้อง ตรวจว่า URL เป็นของ Web App (ลงท้าย /exec) และตั้งสิทธิ์เป็น "Anyone"')}
-  if(!j.ok)throw new Error(j.err||'เกิดข้อผิดพลาด');return j}finally{clearTimeout(tm)}}
+const useRun=()=>GS_EMB&&window.google&&google.script&&google.script.run;
+function runApi(p){return new Promise((res,rej)=>{const t=setTimeout(()=>rej(Object.assign(new Error('timeout'),{name:'AbortError'})),45000);
+ google.script.run.withSuccessHandler(r=>{clearTimeout(t);res(r)}).withFailureHandler(e=>{clearTimeout(t);rej(Object.assign(new Error((e&&e.message)||String(e)),{name:'TypeError'}))}).apiCall(p)})}
+async function gsCall(body,cfgo){const c=cfgo||gsCfg(),payload=JSON.stringify(Object.assign({key:c.key},body));let j;
+ if(useRun()){let t;try{t=await runApi(payload);j=JSON.parse(t)}catch(e){if(e&&e.name==='SyntaxError')throw new Error('ตอบกลับไม่ถูกต้อง');throw e}}
+ else{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),40000);
+  try{const r=await fetch(c.url,{method:'POST',body:payload,signal:ac.signal});
+   if(!r.ok)throw new Error('เซิร์ฟเวอร์ตอบกลับผิดพลาด ('+r.status+')');
+   try{j=await r.json()}catch(e){throw new Error('ตอบกลับไม่ถูกต้อง ตรวจว่า URL เป็นของ Web App (ลงท้าย /exec) และตั้งสิทธิ์เป็น "Anyone"')}}finally{clearTimeout(tm)}}
+ if(!j.ok)throw new Error(j.err||'เกิดข้อผิดพลาด');return j}
 
 async function uploadPhotos(){let n=0;for(const v of db.visits){const nl=Math.max((v.photos||(v.photo?[v.photo]:[])).length,v.nLocal||0);if(!nl)continue;const ids=v.photoIds||[];if(ids.length>=nl)continue;
   for(let i=ids.length;i<nl;i++){const src=await vLocal(v,i);if(!src)break;const r=await gsCall({action:'upphoto',vid:v.id,idx:i,data:src});ids[i]=r.id;v.photoIds=ids;stampNeeded=true;n++;persist()}}return n}
 function keyRevoked(){const c=gsCfg();if(!c)return;const st=gsState();
- if(st.role==='cg'){localStorage.setItem(GSU,c.url);localStorage.removeItem(GSK);if(typeof currentUser!=='undefined'&&currentUser&&currentUser.role==='cg'&&$('#app')&&$('#app').style.display!=='none'){alert('รหัสเข้าใช้ (Key) ของคุณถูกเปลี่ยนหรือถูกยกเลิก\nกรุณาเข้าสู่ระบบใหม่ด้วยรหัสใหม่จากผู้ดูแลระบบ');logout()}}
+ if(st.role==='cg'){localStorage.setItem(GSU,c.url);localStorage.removeItem(GSK);if(typeof currentUser!=='undefined'&&currentUser&&currentUser.role==='cg'&&$('#app')&&$('#app').style.display!=='none'){dlg({msg:'รหัสเข้าใช้ (Key) ของคุณถูกเปลี่ยนหรือถูกยกเลิก\nกรุณาเข้าสู่ระบบใหม่ด้วยรหัสใหม่จากผู้ดูแลระบบ'}).then(()=>logout())}}
  else setStatus('⚠️ รหัส (Key) ไม่ถูกต้อง กรุณาตรวจสอบ ADMIN_KEY ในการตั้งค่าเชื่อมต่อ','#dc2626')}
 async function syncNow(manual){
  if(!gsCfg()||!db)return '';
@@ -403,22 +428,22 @@ async function gsPushAll(){markAllDirty();return syncNow(true)}
 /* หน้าจอตั้งค่า */
 function gsModal(){const c=gsCfg()||{};
  modal(`<h3>☁️ เชื่อมต่อ Google Sheet</h3>
- <p class="mut" style="font-size:13px;margin-top:0">เครื่องใหม่: กรอก 2 ช่องนี้ แล้วระบบจะ<b>เข้าสู่ระบบให้อัตโนมัติ</b> (ครั้งต่อไปใช้รหัสผ่านปกติ)<br>ใส่ <b>URL ของ Web App</b> (ลงท้าย /exec) และ <b>รหัส (Key)</b> ที่ได้รับ<br>• ผู้ดูแลระบบ: ใช้ ADMIN_KEY ที่ตั้งไว้ใน Apps Script<br>• CG: ใช้รหัสเฉพาะตัวที่ผู้ดูแลระบบให้ (ดูได้ที่แท็บ CG ใน Google Sheet)</p>
+ <p class="mut" style="font-size:13px;margin-top:0">${GS_EMB?'กรอก <b>รหัส (Key)</b> แล้วระบบจะ<b>เข้าสู่ระบบให้อัตโนมัติ</b> (ครั้งต่อไปใช้รหัสผ่านปกติ)<br>':'เครื่องใหม่: กรอก 2 ช่องนี้ แล้วระบบจะ<b>เข้าสู่ระบบให้อัตโนมัติ</b> (ครั้งต่อไปใช้รหัสผ่านปกติ)<br>ใส่ <b>URL ของ Web App</b> (ลงท้าย /exec) และ <b>รหัส (Key)</b> ที่ได้รับ<br>'}• ผู้ดูแลระบบ: ใช้ ADMIN_KEY ที่ตั้งไว้ใน Apps Script<br>• CG: ใช้รหัสเฉพาะตัวที่ผู้ดูแลระบบให้ (ดูได้ที่แท็บ CG ใน Google Sheet)</p>
  <div class="form">
- <label class="full">URL ของ Web App<input id="gsU" value="${esc(c.url||'')}" placeholder="https://script.google.com/macros/s/.../exec"></label>
+ ${GS_EMB?'':`<label class="full">URL ของ Web App<input id="gsU" value="${esc(c.url||'')}" placeholder="https://script.google.com/macros/s/.../exec"></label>`}
  <label class="full">รหัส (Key)<input id="gsK" type="password" autocomplete="off" value="${esc(c.key||'')}"></label>
  <div class="full err" id="gserr"></div>
  <div class="full" style="display:flex;gap:10px"><button type="button" onclick="gsConnect()">💾 บันทึกและเชื่อมต่อ</button><button type="button" class="sec" onclick="closeM()">ปิด</button></div></div>`)}
 async function gsConnect(){
- const url=$('#gsU').value.trim(),key=$('#gsK').value.trim(),er=$('#gserr');
- if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url))return er.textContent='URL ไม่ถูกต้อง ต้องขึ้นต้น https://script.google.com/ และลงท้าย /exec';
+ const url=GS_EMB?GS_EMBED:$('#gsU').value.trim(),key=$('#gsK').value.trim(),er=$('#gserr');
+ if(!GS_EMB&&!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url))return er.textContent='URL ไม่ถูกต้อง ต้องขึ้นต้น https://script.google.com/ และลงท้าย /exec';
  if(!key)return er.textContent='กรุณากรอกรหัส (Key)';
  er.style.color='#64748b';er.textContent='⏳ กำลังทดสอบการเชื่อมต่อ...';
  const old={k:localStorage.getItem(GSK),s:localStorage.getItem(GSS)},onLogin=$('#login').style.display!=='none';
  try{localStorage.setItem(GSK,JSON.stringify({url,key}));localStorage.setItem(GSU,url);localStorage.removeItem(GSS);
   let w;try{w=await gsCall({action:'whoami'})}catch(e){if(e.name==='TypeError'||e.name==='AbortError')throw new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบ: (1) อินเทอร์เน็ตของเครื่องนี้ (2) URL ถูกต้องและลงท้าย /exec (3) ตอน Deploy ตั้ง "Who has access" เป็น Anyone (ไม่ใช่ Anyone with Google account) แล้วกด New version');throw e}
   localStorage.setItem(GSS,JSON.stringify({cursor:0,role:w.role,cgId:w.cgId}));
-  if(w.role==='admin'&&(db.patients.length||db.cgs.length)&&confirm('ส่งข้อมูลที่มีอยู่ในเครื่องนี้ขึ้น Google Sheet ด้วยหรือไม่?\n\nตกลง = ส่งขึ้นทั้งหมด (ทำครั้งแรกครั้งเดียว)\nยกเลิก = ไม่ส่ง (ดึงข้อมูลจาก Google Sheet อย่างเดียว)'))markAllDirty();
+  if(w.role==='admin'&&(db.patients.length||db.cgs.length)&&await askConfirm('ส่งข้อมูลที่มีอยู่ในเครื่องนี้ขึ้น Google Sheet ด้วยหรือไม่?\n\nตกลง = ส่งขึ้นทั้งหมด (ทำครั้งแรกครั้งเดียว)\nยกเลิก = ไม่ส่ง (ดึงข้อมูลจาก Google Sheet อย่างเดียว)'))markAllDirty();
   const e=await syncNow(true);if(e)throw new Error(e);
   if(onLogin){
    load();let u;
@@ -429,20 +454,20 @@ async function gsConnect(){
   alert('เชื่อมต่อสำเร็จ ('+(w.role==='admin'?'ผู้ดูแลระบบ':'CG: '+w.name)+')');if($('#app').style.display!=='none'&&curPage==='set')rSet()
  }catch(e){er.style.color='#dc2626';er.textContent='เชื่อมต่อไม่สำเร็จ: '+gsErr(e);
   old.k===null?localStorage.removeItem(GSK):localStorage.setItem(GSK,old.k);old.s===null?localStorage.removeItem(GSS):localStorage.setItem(GSS,old.s)}}
-async function gsSetKey(i){const k=(window._gk||[])[i];if(!k)return;const v=prompt('ตั้งรหัสเข้าใช้ (Key) ใหม่ของ '+k.name+'\n(อย่างน้อย 6 ตัวอักษร ห้ามมีช่องว่าง ห้ามซ้ำกับ CG คนอื่น)',k.key);if(v===null)return;
+async function gsSetKey(i){const k=(window._gk||[])[i];if(!k)return;const v=await askPrompt('ตั้งรหัสเข้าใช้ (Key) ใหม่ของ '+k.name+'\n(อย่างน้อย 6 ตัวอักษร ห้ามมีช่องว่าง ห้ามซ้ำกับ CG คนอื่น)',k.key);if(v===null)return;
  try{await gsCall({action:'setkey',id:k.id,newKey:v.trim()});alert('ตั้งรหัสใหม่ของ '+k.name+' แล้ว (CG ต้องเข้าสู่ระบบใหม่ด้วยรหัสนี้)');gsKeys()}catch(e){alert(gsErr(e))}}
-function gsLink(i){const c=gsCfg(),k=i==null?null:(window._gk||[])[i],u=location.origin+location.pathname+'#gs='+encodeURIComponent(c.url)+(k?'&k='+encodeURIComponent(k.key):'');
+function gsLink(i){const c=gsCfg(),k=i==null?null:(window._gk||[])[i],u=GS_EMB?(GS_EMBED+(k?'?k='+encodeURIComponent(k.key):'')):(location.origin+location.pathname+'#gs='+encodeURIComponent(c.url)+(k?'&k='+encodeURIComponent(k.key):''));
  const done=()=>alert(k?'คัดลอกลิงก์ของ '+k.name+' แล้ว ส่งให้ CG คนนี้เป็นการส่วนตัวเท่านั้น (ในลิงก์มีรหัสของเขารวมอยู่) เปิดลิงก์ในมือถือแล้วระบบจะเชื่อมต่อและเข้าสู่ระบบให้เอง':'คัดลอกลิงก์เชื่อมต่อแล้ว (ไม่มีรหัส ผู้ใช้ต้องกรอกรหัส Key เอง)');
- if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(done,()=>prompt('คัดลอกลิงก์นี้',u));else prompt('คัดลอกลิงก์นี้',u)}
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(done,()=>copyDlg(u));else copyDlg(u)}
 function gsCard(){const c=gsCfg(),st=gsState(),on=!!c;
  return `<div class="card"><h3>☁️ ซิงค์ข้อมูลกับ Google Sheet</h3>
  <p class="mut">${on?`เชื่อมต่อแล้ว · สิทธิ์: <b>${st.role==='admin'?'ผู้ดูแลระบบ':st.role==='cg'?'CG':'-'}</b><br>เมื่อมีการบันทึก ระบบส่งขึ้น Google Sheet อัตโนมัติ และซิงค์อัตโนมัติ<b>เฉพาะเมื่อมีการบันทึกข้อมูล</b> (ส่งขึ้นและดึงข้อมูลล่าสุดพร้อมกัน) และเมื่อเปิดแอป/เข้าสู่ระบบ ต้องการดึงข้อมูลล่าสุดทันทีให้กด "ซิงค์ตอนนี้" หรือปุ่ม 🔄 ในหน้าแดชบอร์ด<br>รูปถ่ายการเยี่ยมจะถูกอัปโหลดไปเก็บใน Google Drive ของผู้ดูแลระบบ (โฟลเดอร์ SmartCG-Photos)`:'ยังไม่ได้เชื่อมต่อ กด "เชื่อมต่อ Google Sheet" แล้วกรอก URL และรหัส (Key)'}</p>
  <div id="syncSt" style="font-weight:600;margin:0 0 8px;color:#475569">${esc(gsStatus)}</div>
  <div class="toolbar"><button onclick="gsModal()">⚙️ ${on?'แก้ไขการเชื่อมต่อ':'เชื่อมต่อ Google Sheet'}</button>${on?`<button class="sec" onclick="gsManual()">🔄 ซิงค์ตอนนี้</button>${st.role==='admin'?`<button class="sec" onclick="gsKeys()">🔑 ดูรหัสของ CG</button><button class="sec" onclick="gsLink()">🔗 ลิงก์เชื่อมต่อ (ไม่มีรหัส)</button><button class="sec" onclick="gsPushAllUi()">⬆️ ส่งข้อมูลเครื่องนี้ขึ้นทั้งหมด</button>`:''}<button class="del" onclick="gsOff()">ยกเลิกการเชื่อมต่อ</button>`:''}</div></div>`}
 async function gsManual(){const e=await syncNow(true);alert(e||'ซิงค์เรียบร้อย')}
-async function gsPushAllUi(){if(!confirm('ส่งข้อมูลทั้งหมดในเครื่องนี้ขึ้น Google Sheet (รายการที่ใหม่กว่าใน Sheet จะไม่ถูกทับ) ยืนยัน?'))return;const e=await gsPushAll();alert(e||'ส่งข้อมูลเรียบร้อย')}
+async function gsPushAllUi(){if(!(await askConfirm('ส่งข้อมูลทั้งหมดในเครื่องนี้ขึ้น Google Sheet (รายการที่ใหม่กว่าใน Sheet จะไม่ถูกทับ) ยืนยัน?')))return;const e=await gsPushAll();alert(e||'ส่งข้อมูลเรียบร้อย')}
 async function gsKeys(){try{const r=await gsCall({action:'keys'});window._gk=r.keys;modal(`<h3>🔑 รหัสเข้าใช้ของ CG</h3><p class="mut" style="font-size:13px">รหัสนี้คือ <b>รหัสผ่านที่ CG ใช้เข้าแอป</b> ตั้งหรือเปลี่ยนได้ที่นี่ หรือแก้ตรงคอลัมน์ "รหัสเข้าใช้ (Key)" ในแท็บ CG ของ Google Sheet (อย่างน้อย 6 ตัวอักษร ห้ามซ้ำกัน) เมื่อเปลี่ยนรหัส CG คนนั้นต้องเข้าสู่ระบบใหม่ด้วยรหัสใหม่</p><div class="tw"><table><tr><th>ชื่อ CG</th><th>รหัส (Key)</th><th>จัดการ</th></tr>${r.keys.map((k,i)=>`<tr><td>${esc(k.name)}</td><td><b style="font-family:monospace;font-size:16px">${esc(k.key)}</b></td><td><button class="sm sec" onclick="gsSetKey(${i})">✏️ ตั้งรหัส</button> <button class="sm sec" onclick="gsLink(${i})">🔗 ลิงก์</button></td></tr>`).join('')||'<tr><td colspan="3" class="mut">ยังไม่มี CG ใน Google Sheet</td></tr>'}</table></div><br><button onclick="closeM()">ปิด</button>`)}catch(e){alert(gsErr(e))}}
-function gsOff(){if(!confirm('ยกเลิกการเชื่อมต่อ Google Sheet บนเครื่องนี้? (ข้อมูลในเครื่องยังอยู่)'))return;localStorage.removeItem(GSK);localStorage.removeItem(GSS);localStorage.removeItem(GSU);setStatus('');rSet()}
+async function gsOff(){if(!(await askConfirm('ยกเลิกการเชื่อมต่อ Google Sheet บนเครื่องนี้? (ข้อมูลในเครื่องยังอยู่)')))return;localStorage.removeItem(GSK);localStorage.removeItem(GSS);localStorage.removeItem(GSU);setStatus('');rSet()}
 window.addEventListener('online',()=>{if(gsReady()&&db&&Object.keys(db._d||{}).length)syncNow()});
 
 function credCard(){const S=db.settings;return `<div class="card"><h3>🔐 ผู้ใช้งานและรหัสผ่านเข้าระบบ</h3><p class="mut" style="margin-top:0">${!S.adminPw?'<b style="color:#dc2626">⚠️ ขณะนี้ผู้ดูแลระบบยังใช้รหัสผ่านเริ่มต้น (admin / admin) กรุณาเปลี่ยน</b><br>':''}${!S.cgPw?'รหัสกลางของ CG ยังเป็นค่าเริ่มต้น (cg / cg) ใช้เฉพาะเมื่อไม่ได้เชื่อมต่อ Google Sheet เมื่อเชื่อมต่อแล้ว CG ใช้ "รหัสเข้าใช้ (Key)" ในแท็บ CG ของ Google Sheet เป็นรหัสผ่าน ':''}รหัสผ่านจะถูกเก็บแบบเข้ารหัส (SHA-256) เว้นช่องรหัสผ่านไว้ = ไม่เปลี่ยน</p><div class="form"><label>ชื่อผู้ใช้ผู้ดูแลระบบ<input id="c1" value="${esc(S.adminUser||'admin')}"></label><label>รหัสผ่านใหม่ของผู้ดูแลระบบ<input id="c2" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label><label>ชื่อผู้ใช้ของรหัสกลาง CG (โหมดไม่เชื่อมต่อ)<input id="c3" value="${esc(S.cgUser||'cg')}"></label><label>รหัสผ่านกลางของ CG (ใช้เฉพาะเมื่อไม่ได้เชื่อมต่อ Google Sheet)<input id="c4" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร"></label></div><br><button onclick="saveCred()">💾 บันทึกรหัสผ่าน</button></div>`}
@@ -453,7 +478,7 @@ save();alert('บันทึกแล้ว');rSet()}
 function onboard(){if(currentUser.role!=='admin'||db.cgs.length||db.patients.length)return '';return `<div class="card" style="border-left:5px solid #8b6447"><h3>👋 ยินดีต้อนรับสู่ระบบเยี่ยมบ้านผู้ป่วย LTC</h3><p style="margin-top:0">เริ่มต้นใช้งานสำหรับ รพ.สต. ของท่านตามลำดับนี้</p><ol style="line-height:2.2;padding-left:20px"><li>ตั้งชื่อ รพ.สต. พื้นที่ และพิกัดหน่วยบริการ <button class="sm" onclick="go('set')">ไปที่ตั้งค่า</button></li><li>เปลี่ยนรหัสผ่านเข้าระบบ <button class="sm sec" onclick="go('set')">ไปที่ตั้งค่า</button></li><li>เพิ่มรายชื่อ CG <button class="sm" onclick="go('cgs')">ผู้ดูแล (CG)</button></li><li>เพิ่มผู้สูงอายุ/ผู้ป่วย แล้วมอบหมายให้ CG <button class="sm" onclick="go('patients')">ทะเบียนผู้ป่วย</button></li><li>ให้ CG ใช้งานจากมือถือ: ตั้งค่า &gt; เชื่อมต่อ Google Sheet ของ รพ.สต. ตนเอง</li></ol></div>`}
 /* ---------- LOGIN ---------- */
 function fillCgLogin(){load();fillLoginBrand();const sel=$('#lcgId');if(sel)sel.innerHTML=db.cgs.length?db.cgs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join(''):`<option value="">${gsReady()?'กำลังโหลดรายชื่อ… (รอสักครู่แล้วลองใหม่)':'ยังไม่มีรายชื่อ CG ในเครื่องนี้ กดเชื่อมต่อ Google Sheet ก่อน'}</option>`}
-function toggleCgSel(val){$('#cgSelBox').style.display=val==='cg'?'block':'none';$('#lu').required=val!=='cg';$('#lu').placeholder=val==='cg'?(gsUrl()?'ไม่ต้องกรอก':'ชื่อผู้ใช้รหัสกลาง'):'กรอกชื่อผู้ใช้';$('#lkeyhint').textContent=(val==='cg'&&gsUrl())?'🔑 รหัสผ่านคือ "รหัสเข้าใช้ (Key)" ที่ผู้ดูแลระบบตั้งไว้ใน Google Sheet':'';if(val==='cg'){fillCgLogin();if(!db.cgs.length&&gsReady())syncNow().then(()=>fillCgLogin())}}
+function toggleCgSel(val){const emb=GS_EMB&&val==='cg';$('#cgSelBox').style.display=(val==='cg'&&!emb)?'block':'none';$('#lulab').style.display=emb?'none':'';$('#lplab').childNodes[0].nodeValue=emb?'รหัสเข้าใช้ (Key)':'รหัสผ่าน';$('#lp').placeholder=emb?'กรอกรหัสเข้าใช้ (Key) ที่ผู้ดูแลระบบให้':'กรอกรหัสผ่าน';$('#lu').required=val!=='cg';$('#lu').placeholder=val==='cg'?(gsUrl()?'ไม่ต้องกรอก':'ชื่อผู้ใช้รหัสกลาง'):'กรอกชื่อผู้ใช้';$('#lkeyhint').textContent=(val==='cg'&&gsUrl())?'🔑 รหัสผ่านคือ "รหัสเข้าใช้ (Key)" ที่ผู้ดูแลระบบตั้งไว้ใน Google Sheet':'';if(val==='cg'&&!GS_EMB){fillCgLogin();if(!db.cgs.length&&gsReady())syncNow().then(()=>fillCgLogin())}}
 function sha256(str){const u=new TextEncoder().encode(str),l=u.length,n=((l+9+63)>>6)<<6,w=new Uint8Array(n);w.set(u);w[l]=0x80;const dv=new DataView(w.buffer);dv.setUint32(n-4,(l*8)>>>0);dv.setUint32(n-8,Math.floor(l*8/4294967296));
  const pr=[];for(let c=2;pr.length<64;c++){let ok=true;for(let d=2;d*d<=c;d++)if(c%d===0){ok=false;break}if(ok)pr.push(c)}
  const fr=x=>Math.floor((x-Math.floor(x))*4294967296),K=pr.map(p=>fr(Math.cbrt(p)));let H=pr.slice(0,8).map(p=>fr(Math.sqrt(p)));
@@ -465,7 +490,7 @@ function sha256(str){const u=new TextEncoder().encode(str),l=u.length,n=((l+9+63
  return H.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('')}
 const hashPw=(salt,pw)=>sha256((salt||'')+':'+pw);
 function credOk(role,u,p){const S=db.settings,k=role==='admin'?'admin':'cg',user=S[k+'User']||k,pw=S[k+'Pw'];if(u!==user)return false;return pw?hashPw(S.salt,p)===pw:p===k}
-function fillLoginBrand(){fillLoginBrand0();const n=$('#lconn');if(n){n.className='lconn-link';n.innerHTML=gsUrl()?'':'<a href="#" onclick="gsModal();return false">เครื่องใหม่? เชื่อมต่อ Google Sheet</a>'}}
+function fillLoginBrand(){fillLoginBrand0();const n=$('#lconn');if(n){n.className='lconn-link';n.innerHTML=(GS_EMB?gsCfg():gsUrl())?'':'<a href="#" onclick="gsModal();return false">'+(GS_EMB?'ผู้ดูแลระบบเครื่องใหม่? เข้าด้วยรหัส Key':'เครื่องใหม่? เชื่อมต่อ Google Sheet')+'</a>'}}
 function fillLoginBrand0(){const S=db.settings,e=$('#lorg');if(!e)return;e.innerHTML=`🏥 <b>${esc(S.orgName||'')}</b>${S.orgSub?`<small>${esc(S.orgSub)}</small>`:''}`}
 async function cgKeyLogin(url,key,c){
  const cfg=gsCfg(),st=gsState();
@@ -476,10 +501,24 @@ async function cgKeyLogin(url,key,c){
   if(!localStorage.getItem(GSS))localStorage.setItem(GSS,JSON.stringify({cursor:0,role:'cg',cgId:c.id}));
   return {ok:true}
  }catch(e){const m=gsErr(e);return {err:/รหัส \(Key\)/.test(m)?'รหัสผ่านไม่ถูกต้อง (ใช้รหัสเข้าใช้ Key ที่ผู้ดูแลระบบตั้งไว้ใน Google Sheet)':'ตรวจรหัสไม่ได้ '+m}}}
+async function cgKeyOnlyLogin(key){
+ const cfg=gsCfg(),st=gsState();
+ try{const w=await gsCall({action:'whoami'},{url:GS_EMBED,key});
+  if(w.role==='admin')return {err:'นี่คือรหัสของผู้ดูแลระบบ กรุณาเลือกประเภทผู้ใช้ "ผู้ดูแลระบบ"'};
+  if(w.role!=='cg')return {err:'รหัสไม่ถูกต้อง'};
+  if((st.role&&st.role!=='cg')||(st.cgId&&st.cgId!==w.cgId)){localStorage.removeItem(KEY);localStorage.removeItem(GSS);load()}   // เครื่องเดิมเคยใช้โดยผู้อื่น ล้างข้อมูลเดิมก่อน
+  localStorage.setItem(GSK,JSON.stringify({url:GS_EMBED,key}));localStorage.setItem(GSU,GS_EMBED);
+  if(!localStorage.getItem(GSS))localStorage.setItem(GSS,JSON.stringify({cursor:0,role:'cg',cgId:w.cgId}));
+  if(!db.cgs.find(x=>x.id===w.cgId)){const er=await syncNow(true);load();if(er&&!db.cgs.find(x=>x.id===w.cgId))return {err:'ดึงข้อมูลไม่สำเร็จ '+er}}
+  const c=db.cgs.find(x=>x.id===w.cgId);return c?{ok:true,c}:{err:'ไม่พบข้อมูล CG ของรหัสนี้ กรุณาแจ้งผู้ดูแลระบบ'}
+ }catch(e){const m=gsErr(e);
+  if(cfg&&cfg.key===key&&st.cgId){const c=db.cgs.find(x=>x.id===st.cgId);if(c)return {ok:true,c}}
+  return {err:/รหัส \(Key\)/.test(m)?'รหัสไม่ถูกต้อง':'ตรวจรหัสไม่ได้ '+m}}}
 async function doLogin(e){
  e.preventDefault();load();
  const role=$('#lrole').value,u=$('#lu').value.trim(),p=$('#lp').value;$('#lerr').textContent='';const bad=m=>{$('#lerr').textContent=m};
  if(role==='admin'){if(!credOk('admin',u,p))return bad('ชื่อผู้ใช้หรือรหัสผ่านผู้ดูแลระบบไม่ถูกต้อง');currentUser={role:'admin',cgId:null,name:'ผู้ดูแลระบบ (Admin)'}}
+ else if(GS_EMB){if(!p)return bad('กรุณากรอกรหัสเข้าใช้ (Key)');const btn=e.target&&e.target.querySelector&&e.target.querySelector('button:not([type=button])');if(btn)btn.disabled=true;const r=await cgKeyOnlyLogin(p);if(btn)btn.disabled=false;if(r.err)return bad(r.err);currentUser={role:'cg',cgId:r.c.id,name:r.c.name}}
  else{const c=db.cgs.find(x=>x.id===$('#lcgId').value);if(!c)return bad('กรุณาเลือกชื่อ CG');
   const url=gsUrl();
   if(url){if(!p)return bad('กรุณากรอกรหัสผ่าน (รหัสเข้าใช้ Key)');const btn=e.target&&e.target.querySelector&&e.target.querySelector('button:not([type=button])');if(btn)btn.disabled=true;const r=await cgKeyLogin(url,p,c);if(btn)btn.disabled=false;if(r.err)return bad(r.err)}
@@ -493,6 +532,7 @@ function start(){const s=sessionStorage.getItem('scg_user');if(!s)return;try{cur
  $('#login').style.display='none';$('#app').style.display='flex';load();$('#userRoleBadge').textContent=currentUser.name;if(currentUser.role==='cg')state.cg=currentUser.cgId;go('dash')}
 window.onload=async()=>{load();migratePhotos();
  {const hp=new URLSearchParams(location.hash.replace(/^#/,'')),lu=hp.get('gs'),lk=hp.get('k');if(lu){history.replaceState(null,'',location.pathname+location.search);setTimeout(()=>{gsModal();$('#gsU').value=lu;if(lk){$('#gsK').value=lk;gsConnect()}},50)}}
+ if(GS_EMB&&GS_PRESET&&!sessionStorage.getItem('scg_user')){let k='';try{k=decodeURIComponent(GS_PRESET)}catch(e){}if(k)setTimeout(()=>{gsModal();$('#gsK').value=k;gsConnect()},50)}
  if(gsReady())await Promise.race([syncNow(),new Promise(r=>setTimeout(r,8000))]);fillCgLogin();if(sessionStorage.getItem('scg_user'))start()};
 
 const PAGES={
@@ -660,7 +700,7 @@ function rHist(){
  ${shown.length>lim?`<p style="text-align:center"><button class="sec" onclick="state.hlim=${lim}+40;const y=window.scrollY;rHist();window.scrollTo(0,y)">แสดงเพิ่ม (อีก ${shown.length-lim} รายการ)</button></p>`:''}`)}
 
 function openVisit(id){state.vdet=id;go('vdet')}
-function delVisit(id){if(currentUser.role!=='admin')return;if(!confirm('ลบบันทึกการเยี่ยมนี้?'))return;db.visits=db.visits.filter(x=>x.id!==id);save();go('hist')}
+async function delVisit(id){if(currentUser.role!=='admin')return;if(!(await askConfirm('ลบบันทึกการเยี่ยมนี้?')))return;db.visits=db.visits.filter(x=>x.id!==id);save();go('hist')}
 function bigPh(i){modal(`<img src="${_vph[i]}" style="max-width:100%;max-height:75vh;display:block;margin:auto;border-radius:8px"><br><button onclick="closeM()">ปิด</button>`)}
 async function gsPhoto(id,vid){if(_phc[id])return _phc[id];const r=await gsCall({action:'photo',id,vid});_phc[id]=r.data;return r.data}
 async function loadVPhotos(v){const box=$('#vphotos');if(!box)return;const loc=v.photos||(v.photo?[v.photo]:[]),ids=v.photoIds||[],n=Math.max(loc.length,v.nLocal||0,ids.length,+v.nPhotos||0);_vph=[];
@@ -707,8 +747,8 @@ async function getPos(){
  const one=o=>new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,o));
  try{return await one({enableHighAccuracy:true,timeout:12000,maximumAge:30000})}
  catch(e){if(e&&e.code===1)throw e;return await one({enableHighAccuracy:false,timeout:20000,maximumAge:120000})}}
-function gpsWhy(c){return {1:'ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง',2:'หาตำแหน่งไม่ได้ (สัญญาณ GPS ไม่พร้อม)',3:'หาตำแหน่งไม่ทัน (หมดเวลา)',0:'ต้องเปิดเว็บผ่าน https จึงจะใช้ตำแหน่งได้','-1':'อุปกรณ์/เบราว์เซอร์นี้ไม่รองรับการหาตำแหน่ง'}[c]||'ดึงพิกัดไม่สำเร็จ'}
-function gpsSteps(c){const ua=navigator.userAgent||'',ios=/iPhone|iPad|iPod/.test(ua),and=/Android/.test(ua),pc=!ios&&!and,inApp=/Line\/|FBAN|FBAV|Instagram|MicroMessenger/i.test(ua),L=[];
+function gpsWhy(c){if(GS_EMB&&(c===1||c===undefined))return 'หน้านี้เปิดผ่าน Google Apps Script ซึ่ง Google ไม่อนุญาตให้ใช้ GPS ของเครื่อง';return {1:'ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง',2:'หาตำแหน่งไม่ได้ (สัญญาณ GPS ไม่พร้อม)',3:'หาตำแหน่งไม่ทัน (หมดเวลา)',0:'ต้องเปิดเว็บผ่าน https จึงจะใช้ตำแหน่งได้','-1':'อุปกรณ์/เบราว์เซอร์นี้ไม่รองรับการหาตำแหน่ง'}[c]||'ดึงพิกัดไม่สำเร็จ'}
+function gpsSteps(c){if(GS_EMB&&(c===1||c===undefined))return['ให้ใช้ "ปักหมุดบนแผนที่" (ค้นหาชื่อสถานที่ได้ มีภาพดาวเทียม) หรือ "วางพิกัด" ที่คัดลอกจาก Google Maps แทน'];const ua=navigator.userAgent||'',ios=/iPhone|iPad|iPod/.test(ua),and=/Android/.test(ua),pc=!ios&&!and,inApp=/Line\/|FBAN|FBAV|Instagram|MicroMessenger/i.test(ua),L=[];
  if(inApp)L.push('คุณเปิดเว็บจากในแอป (เช่น LINE/Facebook) ซึ่งมักบล็อกตำแหน่ง ให้กดเมนู ⋮ แล้วเลือก "เปิดในเบราว์เซอร์" (Chrome หรือ Safari)');
  if(c===1||c===undefined){
   if(pc){L.push('ในเบราว์เซอร์ (Chrome/Edge): คลิกไอคอน 🔒 ข้างช่องที่อยู่เว็บ > ตำแหน่ง > เลือก "อนุญาต" แล้วรีเฟรชหน้า (ถ้าเคยกด "บล็อก" ต้องมาเปลี่ยนตรงนี้ หรือไปที่ chrome://settings/content/location แล้วลบเว็บนี้ออกจากรายการ "ไม่อนุญาต")');
@@ -723,7 +763,7 @@ function gpsSteps(c){const ua=navigator.userAgent||'',ios=/iPhone|iPad|iPod/.tes
  return L}
 /* วิธีที่ไม่ต้องใช้ GPS: คัดลอกพิกัดจาก Google Maps แล้ววาง */
 function parseLL(t){t=String(t||'').trim();let m=t.match(/@(-?\d{1,3}\.\d+),\s*(-?\d{1,3}\.\d+)/)||t.match(/[?&](?:q|ll|query)=(-?\d{1,3}\.\d+)(?:,|%2C)\s*(-?\d{1,3}\.\d+)/)||t.match(/(-?\d{1,3}\.\d+)\s*[,;\s]\s*(-?\d{1,3}\.\d+)/);if(!m)return null;const a=+m[1],b=+m[2];return Math.abs(a)<=90&&Math.abs(b)<=180?[a.toFixed(6),b.toFixed(6)]:null}
-function pasteLL(latId,lngId,after){const t=prompt('วางพิกัดจาก Google Maps\n\nวิธีคัดลอก: เปิด Google Maps > คลิกขวา (หรือกดค้างบนมือถือ) ที่จุดที่ต้องการ > คลิกตัวเลขพิกัดด้านบนสุดของเมนู เพื่อคัดลอก แล้ววางที่นี่\nตัวอย่าง: 17.123456, 101.654321');if(t===null)return;
+async function pasteLL(latId,lngId,after){const t=await askPrompt('วางพิกัดจาก Google Maps\n\nวิธีคัดลอก: เปิด Google Maps > คลิกขวา (หรือกดค้างบนมือถือ) ที่จุดที่ต้องการ > คลิกตัวเลขพิกัดด้านบนสุดของเมนู เพื่อคัดลอก แล้ววางที่นี่\nตัวอย่าง: 17.123456, 101.654321');if(t===null)return;
  const ll=parseLL(t);if(!ll)return alert('อ่านพิกัดไม่ได้ กรุณาวางตัวเลขแบบ ละติจูด, ลองจิจูด เช่น 17.123456, 101.654321');
  $('#'+latId).value=ll[0];$('#'+lngId).value=ll[1];if(after)after(ll);else toast('✅ ใส่พิกัดแล้ว')}
 function gpsHelpText(c){const st=gpsSteps(c).slice(0,2).map((x,i)=>(i+1)+'. '+x.slice(0,150)+(x.length>150?'…':'')).join('\n');return gpsWhy(c)+'\n\n'+st+'\n\nหรือกดปุ่ม "📌 ปักหมุด" เพื่อเลือกตำแหน่งบนแผนที่แทน (ไม่ต้องใช้ GPS ใช้ได้ทั้งมือถือและคอมพิวเตอร์)'}
@@ -760,6 +800,7 @@ function pickOnMap(latId,lngId,after){
    r.querySelectorAll('button').forEach(b=>b.onclick=()=>{const x=j[+b.dataset.i];setPt({lat:+x.lat,lng:+x.lon},17);r.innerHTML=''})}
   catch(e){r.innerHTML='<p class="mut" style="margin:6px 0">ค้นหาไม่สำเร็จ (ตรวจอินเทอร์เน็ต) เลื่อนแผนที่แล้วปักหมุดเองได้</p>'}};
  g('pkgo').onclick=search;g('pkq').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();search()}};
+ if(GS_EMB)g('pkgps').style.display='none';
  g('pkgps').onclick=async()=>{try{const p=await getPos();setPt({lat:p.coords.latitude,lng:p.coords.longitude},17)}catch(e){toast('ใช้ตำแหน่งปัจจุบันไม่ได้ ปักหมุดบนแผนที่ได้เลย')}};
  g('pkx').onclick=closePick;
  g('pkok').onclick=()=>{const p=_pk.pt;if(!p)return;const ll=[p.lat.toFixed(6),p.lng.toFixed(6)];$('#'+latId).value=ll[0];$('#'+lngId).value=ll[1];closePick();if(after)after(ll);else toast('✅ ใส่พิกัดแล้ว')}}
@@ -814,7 +855,7 @@ function savePat(e,id){e.preventDefault();const f=Object.fromEntries(new FormDat
  if(currentUser.role==='cg')f.cgId=currentUser.cgId;
  f.group=+f.group;f.adl=f.adl===''?'':+f.adl;if(!f.sex)f.sex=guessSex(f.name);
  if(id)Object.assign(P(id),f);else db.patients.push({id:uid(),...f});save();closeM();rPat()}
-function delPat(id){if(currentUser.role!=='admin')return alert('เฉพาะผู้ดูแลระบบเท่านั้นที่ลบได้');const p0=P(id);if(!p0)return;if(!confirm('ยืนยันลบ "'+p0.name+'" และประวัติ ADL/การเยี่ยมบ้านทั้งหมด?\nลบแล้วกู้คืนไม่ได้ (แนะนำเปลี่ยนสถานะเป็น "จำหน่าย" แทน)'))return;
+async function delPat(id){if(currentUser.role!=='admin')return alert('เฉพาะผู้ดูแลระบบเท่านั้นที่ลบได้');const p0=P(id);if(!p0)return;if(!(await askConfirm('ยืนยันลบ "'+p0.name+'" และประวัติ ADL/การเยี่ยมบ้านทั้งหมด?\nลบแล้วกู้คืนไม่ได้ (แนะนำเปลี่ยนสถานะเป็น "จำหน่าย" แทน)')))return;
  db.patients=db.patients.filter(p=>p.id!==id);db.adl=db.adl.filter(x=>x.pid!==id);db.tai=db.tai.filter(x=>x.pid!==id);db.scr=(db.scr||[]).filter(x=>x.pid!==id);db.visits=db.visits.filter(x=>x.pid!==id);Object.values(db.schedules).forEach(s=>delete s.visits[id]);save();closeM();rPat()}
 
 /* ---------- CG ---------- */
@@ -833,7 +874,7 @@ function editCg(id){const c=id?db.cgs.find(x=>x.id===id):{name:'',cid:'',phone:'
 function saveCg(e,id){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));f.cid=f.cid.replace(/\D/g,'');f.name=f.name.trim();
  if(f.cid&&!validCID(f.cid))return $('#cerr').textContent='เลขบัตรประชาชนไม่ถูกต้อง';
  if(id)Object.assign(db.cgs.find(c=>c.id===id),f);else db.cgs.push({id:uid(),...f});save();closeM();rCg()}
-function delCg(id){const n=db.patients.filter(p=>p.cgId===id).length;if(n)return alert(`ยังมีผู้ป่วยในความดูแล ${n} ราย กรุณาย้ายไป CG อื่นก่อน`);if(!confirm('ยืนยันลบ CG?'))return;db.cgs=db.cgs.filter(c=>c.id!==id);save();closeM();rCg()}
+async function delCg(id){const n=db.patients.filter(p=>p.cgId===id).length;if(n)return alert(`ยังมีผู้ป่วยในความดูแล ${n} ราย กรุณาย้ายไป CG อื่นก่อน`);if(!(await askConfirm('ยืนยันลบ CG?')))return;db.cgs=db.cgs.filter(c=>c.id!==id);save();closeM();rCg()}
 
 /* ---------- ADL + คัดกรองสุขภาพ 10 ด้าน (รวมอยู่ในบันทึกเยี่ยมบ้าน) ---------- */
 function adlVals(){return ADL_ITEMS.map((_,i)=>{const r=document.querySelector(`input[name=a${i}]:checked`);return r?+r.value:null})}
@@ -891,7 +932,7 @@ function rDashCG(){
 /* ---------- SCHEDULE ---------- */
 function holSet(){const s=new Set();(db.settings.holidays||'').split(/\s+/).forEach(l=>{const m=l.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(m){let y=+m[1];if(y>2400)y-=543;s.add(`${y}-${pad(m[2])}-${pad(m[3])}`)}});return s}
 function workDays(y,m){const n=new Date(y,m,0).getDate(),h=holSet(),r=[];for(let d=1;d<=n;d++){const w=new Date(y,m-1,d).getDay();if(!db.settings.weekend&&(w===0||w===6))continue;if(h.has(`${y}-${pad(m)}-${pad(d)}`))continue;r.push(d)}return r}
-function genSch(){const key=mkey(state.y,state.m);if(db.schedules[key]&&!confirm('มีตารางเดือนนี้แล้ว ต้องการสร้างใหม่ทับหรือไม่?'))return;
+async function genSch(){const key=mkey(state.y,state.m);if(db.schedules[key]&&!(await askConfirm('มีตารางเดือนนี้แล้ว ต้องการสร้างใหม่ทับหรือไม่?')))return;
  const days=workDays(state.y,state.m);if(!days.length)return alert('ไม่มีวันทำงานในเดือนนี้');
  const sch={created:new Date().toISOString(),visits:{},duty:{}},n=Math.max(db.cgs.length,1);
  db.cgs.forEach((c,ci)=>sch.duty[c.id]=days[Math.floor((ci+0.5)*days.length/n)%days.length]);
@@ -904,7 +945,7 @@ function genSch(){const key=mkey(state.y,state.m);if(db.schedules[key]&&!confirm
  db.schedules[key]=sch;save();rSch()}
 function tg(pid,d){if(currentUser.role==='cg')return;const s=db.schedules[mkey(state.y,state.m)];if(!s)return;const a=s.visits[pid]||(s.visits[pid]=[]),i=a.indexOf(d);i>=0?a.splice(i,1):(a.push(d),a.sort((x,y)=>x-y));save();rSch()}
 function tgDuty(cg,d){if(currentUser.role==='cg')return;const s=db.schedules[mkey(state.y,state.m)];if(!s)return;s.duty[cg]=s.duty[cg]===d?null:d;save();rSch()}
-function delSch(){if(confirm('ลบตารางเดือนนี้?')){delete db.schedules[mkey(state.y,state.m)];save();rSch()}}
+async function delSch(){if(await askConfirm('ลบตารางเดือนนี้?')){delete db.schedules[mkey(state.y,state.m)];save();rSch()}}
 function rSch(){const y=state.y,m=state.m,key=mkey(y,m),sch=db.schedules[key],nd=new Date(y,m,0).getDate(),wd=new Set(workDays(y,m)),S=db.settings,isA=currentUser.role==='admin';
  const done=new Set(db.visits.filter(v=>v.date.startsWith(key)).map(v=>v.pid+'|'+(+v.date.slice(8))));
  const cgs=!isA?db.cgs.filter(c=>c.id===currentUser.cgId):db.cgs.filter(c=>!state.cg||c.id===state.cg);
@@ -1082,11 +1123,11 @@ function rSet(){const S=db.settings;
  <button class="del" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button></div></div>
  <div class="card">ผู้ป่วย ${db.patients.length} • CG ${db.cgs.length} • ADL ${db.adl.length} • เยี่ยมบ้าน ${db.visits.length} รายการ</div>`)}
 function saveSet(){Object.assign(db.settings,{orgName:$('#s0').value.trim(),visitHrs:+$('#s1').value||0,dutyHrs:+$('#s2').value||0,weekend:$('#s3').value==='1',holidays:$('#s4').value,orgLat:$('#s5').value.trim(),orgLng:$('#s6').value.trim(),orgSub:$('#s7').value.trim(),defAddr:$('#s8').value.trim()});save();alert('บันทึกการตั้งค่าแล้ว')}
-function restore(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.patients||!d.cgs)throw 0;if(!confirm('ข้อมูลปัจจุบันจะถูกแทนที่ ยืนยัน?'))return;db=d;db._h=null;normDb();save();load();alert('กู้คืนสำเร็จ');(async()=>{if(gsReady()&&confirm('ส่งข้อมูลที่กู้คืนขึ้น Google Sheet ด้วยหรือไม่?'))await gsPushAll();go('dash')})()}catch(e){alert('ไฟล์ไม่ถูกต้อง')}};r.readAsText(f)}
+function restore(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(!d.patients||!d.cgs)throw 0;if(!(await askConfirm('ข้อมูลปัจจุบันจะถูกแทนที่ ยืนยัน?')))return;db=d;db._h=null;normDb();save();load();alert('กู้คืนสำเร็จ');(async()=>{if(gsReady()&&await askConfirm('ส่งข้อมูลที่กู้คืนขึ้น Google Sheet ด้วยหรือไม่?'))await gsPushAll();go('dash')})()}catch(e){alert('ไฟล์ไม่ถูกต้อง')}};r.readAsText(f)}
 function csvPat(){const rows=[['ชื่อ-สกุล','เลขบัตรประชาชน','วันเกิด','อายุ','เพศ','หมู่','ที่อยู่','Latitude','Longitude','เบอร์โทร','โรคประจำตัว','ADL','กลุ่ม','CG','ญาติ','เบอร์ญาติ','สถานะ']];
  db.patients.forEach(p=>rows.push([p.name,p.cid?"'"+p.cid:'',p.birth?thDate(p.birth):'',age(p.birth),p.sex,p.moo,p.address,p.lat,p.lng,p.phone,p.disease,p.adl,p.group,cgName(p.cgId),p.relative,p.relPhone,p.status==='inactive'?'จำหน่าย':'อยู่ในความดูแล']));
  dl(`รายชื่อผู้สูงอายุ_${todayISO()}.csv`,toCSV(rows),'text/csv;charset=utf-8')}
-function resetAll(){if(prompt('พิมพ์ RESET เพื่อยืนยันล้างข้อมูลทั้งหมด')!=='RESET')return;localStorage.removeItem(KEY);localStorage.removeItem(GSS);load();alert('รีเซ็ตเรียบร้อย (ล้างเฉพาะเครื่องนี้ ข้อมูลใน Google Sheet ยังอยู่ และจะถูกดึงกลับมาเมื่อซิงค์)');go('dash');syncNow(true)}
+async function resetAll(){if((await askPrompt('พิมพ์ RESET เพื่อยืนยันล้างข้อมูลทั้งหมด'))!=='RESET')return;localStorage.removeItem(KEY);localStorage.removeItem(GSS);load();alert('รีเซ็ตเรียบร้อย (ล้างเฉพาะเครื่องนี้ ข้อมูลใน Google Sheet ยังอยู่ และจะถูกดึงกลับมาเมื่อซิงค์)');go('dash');syncNow(true)}
 </script>
 </body>
 </html>
